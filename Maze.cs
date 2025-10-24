@@ -21,6 +21,8 @@ namespace PacMan
         public float TileH { get; }
 
         public bool[,] Pellets { get; private set; }
+        public bool[,] SuperPellets { get; private set; }
+
 
         public Maze()
         {
@@ -39,22 +41,27 @@ namespace PacMan
         public void InitializePellets()
         {
             var layout = MazeData.Layout;
+            Rows = layout.Length;
+            Columns = layout[0].Length;
+
+            Pellets = new bool[Rows, Columns];
+            SuperPellets = new bool[Rows, Columns];
+
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Columns; c++)
                 {
                     char ch = layout[r][c];
-
-                    // pellet only if the map explicitly marks a '.' and not near bottom off-limits rows
                     if (ch == '.' && r < Rows - 2)
-                    {
                         Pellets[r, c] = true;
-                    }
+                    else if (ch == 'o' && r < Rows - 2)
+                        SuperPellets[r, c] = true;
                 }
             }
 
-            Console.WriteLine($"[DIAG] Pellets initialized: {Pellets.Cast<bool>().Count(p => p)}");
+            Console.WriteLine($"[DIAG] Pellets={Pellets.Cast<bool>().Count(p => p)} SuperPellets={SuperPellets.Cast<bool>().Count(p => p)}");
         }
+
 
 
 
