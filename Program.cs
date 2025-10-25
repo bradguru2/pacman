@@ -14,6 +14,8 @@ namespace PacMan
         private static PacManController? _controller;
         private static MazeRenderer? _mazeRenderer;
         private static PelletRenderer? _pelletRenderer;
+        private static List<GhostRenderer> _ghosts;
+
 
 
         static void Main(string[] args)
@@ -70,6 +72,18 @@ namespace PacMan
             _pelletRenderer = new PelletRenderer(gl, maze);
             _pelletRenderer.Initialize();
 
+            // Ghosts setup
+            _ghosts =
+            [
+                new(gl, maze.GetTileCenterUV(16, 12), new Vector3D<float>(1.0f, 0.0f, 0.0f)), // Blinky (Red)
+                new(gl, maze.GetTileCenterUV(16, 13), new Vector3D<float>(1.0f, 0.6f, 1.0f)), // Pinky
+                new(gl, maze.GetTileCenterUV(16, 14), new Vector3D<float>(0.0f, 1.0f, 1.0f)), // Inky
+                new(gl, maze.GetTileCenterUV(16, 15), new Vector3D<float>(1.0f, 0.6f, 0.0f))  // Clyde
+            ];
+
+            foreach (var ghost in _ghosts)
+                ghost.Initialize();
+
             // ✅ Create controller and connect it
             _controller?.Dispose();
             _controller = new PacManController(_window!, startUV)
@@ -124,6 +138,10 @@ namespace PacMan
 
             // ✅ Then Pac-Man
             _renderer?.Render((float)_window!.Time);
+
+            // ✅ Then ghosts
+            foreach (var ghost in _ghosts)
+                ghost.Render(); 
         }
 
 

@@ -42,8 +42,8 @@ namespace PacMan
                         float s = _maze.TileW * 0.10f; // regular pellet
                         verts.AddRange(new float[]
                         {
-                    u - s, v - s,  u + s, v - s,  u + s, v + s,
-                    u - s, v - s,  u + s, v + s,  u - s, v + s
+                            u - s, v - s,  u + s, v - s,  u + s, v + s,
+                            u - s, v - s,  u + s, v + s,  u - s, v + s
                         });
                     }
                     else if (_maze.SuperPellets[r, c])
@@ -51,8 +51,8 @@ namespace PacMan
                         float s = _maze.TileW * 0.18f; // slightly larger
                         superVerts.AddRange(new float[]
                         {
-                    u - s, v - s,  u + s, v - s,  u + s, v + s,
-                    u - s, v - s,  u + s, v + s,  u - s, v + s
+                            u - s, v - s,  u + s, v - s,  u + s, v + s,
+                            u - s, v - s,  u + s, v + s,  u - s, v + s
                         });
                     }
                 }
