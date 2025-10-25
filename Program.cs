@@ -120,7 +120,7 @@ namespace PacMan
             // ✅ Draw maze first
             _mazeRenderer?.Render();
 
-            _pelletRenderer?.Render(); // draw pellets before Pac-Man
+            _pelletRenderer?.Render((float)_window!.Time);
 
             // ✅ Then Pac-Man
             _renderer?.Render((float)_window!.Time);

@@ -12,9 +12,10 @@ namespace PacMan
         private uint _vao, _vbo;
         private uint _program;
         private uint _pelletCount;
-        private float PelletSize;
         private uint _superVAO, _superVBO;
         private uint _superCount;
+        private int _iColorLoc, _iTimeLoc;
+
 
 
 
@@ -94,32 +95,45 @@ namespace PacMan
             string frag = @"
                 #version 330 core
                 uniform vec3 uColor;
+                uniform float uTime;
                 out vec4 FragColor;
-                void main() { FragColor = vec4(uColor, 1.0); }
+
+                void main() {
+                    // Base brightness oscillates between 0.6 and 1.0
+                    float glow = 0.8 + 0.2 * sin(uTime * 4.0);
+                    FragColor = vec4(uColor * glow, 1.0);
+                }
             ";
 
+
             _program = ShaderUtils.CreateProgram(_gl, vert, frag);
+            _iColorLoc = _gl.GetUniformLocation(_program, "uColor");
+            _iTimeLoc = _gl.GetUniformLocation(_program, "uTime");
         }
 
-        public void Render()
+        public void Render(float timeSeconds)
         {
             _gl.UseProgram(_program);
+            _gl.Disable(GLEnum.DepthTest);
+            _gl.Enable(GLEnum.Blend);
+            _gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
 
-            // Draw normal pellets (white)
-            int colorLoc = _gl.GetUniformLocation(_program, "uColor");
-            _gl.Uniform3(colorLoc, 1.0f, 1.0f, 1.0f); // white
+            _gl.Uniform1(_iTimeLoc, timeSeconds);
+
+            // Draw normal pellets (white, static)
+            _gl.Uniform3(_iColorLoc, 1.0f, 1.0f, 1.0f);
             _gl.BindVertexArray(_vao);
             _gl.DrawArrays(PrimitiveType.Triangles, 0, _pelletCount);
 
-            // Draw super pellets (yellow)
-            _gl.Uniform3(colorLoc, 1.0f, 1.0f, 0.3f); // soft yellow
+            // Draw super pellets (yellow, glowing)
+            _gl.Uniform3(_iColorLoc, 1.0f, 1.0f, 0.3f);
             _gl.BindVertexArray(_superVAO);
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, _superCount);            
-
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, _superCount);
 
             _gl.BindVertexArray(0);
             _gl.UseProgram(0);
         }
+
 
     }
 }
