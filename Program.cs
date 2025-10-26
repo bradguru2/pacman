@@ -21,7 +21,7 @@ namespace PacMan
         static void Main(string[] args)
         {
             var options = WindowOptions.Default;
-            options.Size = new Vector2D<int>(800, 600);
+            options.Size = new Vector2D<int>(1024, 768);
             options.Title = "Pac-Man Demo (movement)";
 
             _window = Window.Create(options);

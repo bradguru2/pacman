@@ -51,25 +51,43 @@ namespace PacMan
                 layout(location = 0) in vec2 aPos;
                 uniform vec2 uPos;
                 uniform float uScale;
-                void main() {
-                    vec2 pos = (aPos - 0.5) * uScale + uPos;
-                    gl_Position = vec4(pos * 2.0 - 1.0, 0.0, 1.0);
-                }
+                out vec2 vLocal;
+
+            void main()
+            {
+                // vLocal goes from -1..1 across ghost quad
+                vLocal = (aPos - 0.5) * 2.0;
+                vec2 pos = (aPos - 0.5) * uScale + uPos;
+                gl_Position = vec4(pos * 2.0 - 1.0, 0.0, 1.0);
+            }
+
             ";
 
             string frag = @"
                 #version 330 core
                 uniform vec3 uColor;
+                in vec2 vLocal;
                 out vec4 FragColor;
 
-                void main() {
-                    // Map pixel to normalized ghost space (-1..1)
-                    vec2 p = gl_FragCoord.xy / vec2(800, 600); // fallback, actual ghost shape
-                    // Round head + flat bottom
-                    vec2 uv = (gl_FragCoord.xy / vec2(800, 600)) * 2.0 - 1.0;
-                    float dist = length(uv);
-                    if (dist > 0.9) discard;
-                    FragColor = vec4(uColor, 1.0);
+                void main()
+                {
+                    vec2 p = vLocal;
+                    vec3 color = uColor; // Starting Color ghost background
+
+                    // if p is outside circle, discard
+                    if (length(p) > 1.0 && p.y > -0.3)
+                        discard;
+
+                    // Eyes                    
+                    vec2 leftEye = p - vec2(-0.35, 0.25);
+                    vec2 rightEye = p - vec2(0.35, 0.25);
+
+                    if (length(leftEye - vec2(0.05, 0.0)) < 0.1 || length(rightEye - vec2(0.05, 0.0)) < 0.1)
+                        color = vec3(0.2, 0.4, 1.0);
+                    else if (length(leftEye) < 0.25 || length(rightEye) < 0.25)
+                        color = vec3(1.0);    
+
+                    FragColor = vec4(color, 1.0);
                 }
             ";
 

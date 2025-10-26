@@ -36,16 +36,14 @@ namespace PacMan
 
             ParseMap(map);
             Pellets = new bool[Rows, Columns];
+            SuperPellets = new bool[Rows, Columns];
         }
 
         public void InitializePellets()
         {
             var layout = MazeData.Layout;
             Rows = layout.Length;
-            Columns = layout[0].Length;
-
-            Pellets = new bool[Rows, Columns];
-            SuperPellets = new bool[Rows, Columns];
+            Columns = layout[0].Length;           
 
             for (int r = 0; r < Rows; r++)
             {
@@ -61,9 +59,6 @@ namespace PacMan
 
             Console.WriteLine($"[DIAG] Pellets={Pellets.Cast<bool>().Count(p => p)} SuperPellets={SuperPellets.Cast<bool>().Count(p => p)}");
         }
-
-
-
 
         private void ParseMap(string[] map)
         {
