@@ -88,7 +88,7 @@ namespace PacMan
             _controller?.Dispose();
             _controller = new PacManController(_window!, startUV)
             {
-                Speed = 0.10f,
+                Speed = 0.10f, // UV units per second
                 EntityRadius = _renderer.Scale * baseRadius,
                 Margin = _renderer.Scale * baseRadius + 0.01f
             };

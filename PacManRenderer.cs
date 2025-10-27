@@ -210,11 +210,7 @@ namespace PacMan
             // mouth detection logic (same as shader) for OnChomp event
             float mouthAnim = MathF.Abs(MathF.Sin(timeSeconds * 4.0f));
             bool mouthOpen = mouthAnim > _mouthOpenThreshold;
-
-            if (mouthOpen && !_prevMouthOpen && (timeSeconds - _lastChompTime) > _chompCooldown)
-            {
-                _lastChompTime = timeSeconds;
-            }
+            
             _prevMouthOpen = mouthOpen;
 
             _gl.UseProgram(_program);
