@@ -28,16 +28,16 @@ namespace PacMan
         private int _uRotationLoc;
         private int _uScaleLoc;
 
-        private int _width = 800;
-        private int _height = 600;
+        private int _width = 800; // Default windowed
+        private int _height = 600; // Default windowed
 
         // Chomp event - subscribers will play sound
         public event Action? OnChomp;
 
         // Debounce / smoothing state
         private bool _prevMouthOpen = false;
-        private double _lastChompTime = -9999.0;
-        private readonly double _chompCooldown = 0.18; // seconds minimum between chomps
+        private double _lastChompTime = 0.0;
+        private readonly double _chompCooldown = 0.250; // seconds minimum between chomps
         private readonly float _mouthOpenThreshold = 0.45f; // threshold on mouthAnim to consider "open"
 
         // External controls
@@ -210,19 +210,7 @@ namespace PacMan
             // mouth detection logic (same as shader) for OnChomp event
             float mouthAnim = MathF.Abs(MathF.Sin(timeSeconds * 4.0f));
             bool mouthOpen = mouthAnim > _mouthOpenThreshold;
-
-            if (mouthOpen && !_prevMouthOpen && (timeSeconds - _lastChompTime) > _chompCooldown)
-            {
-                _lastChompTime = timeSeconds;
-                try
-                {
-                    OnChomp?.Invoke();
-                }
-                catch
-                {
-                    // swallow exceptions from subscribers
-                }
-            }
+            
             _prevMouthOpen = mouthOpen;
 
             _gl.UseProgram(_program);
@@ -250,6 +238,15 @@ namespace PacMan
             _gl.BindVertexArray(0);
 
             _gl.UseProgram(0);
+        }
+
+        public void Chomp(double currentTime)
+        {
+            if (currentTime - _lastChompTime < _chompCooldown)
+                return;
+
+            _lastChompTime = currentTime;
+            OnChomp?.Invoke();
         }
 
         private uint CreateShader(ShaderType type, string src)

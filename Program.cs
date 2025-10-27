@@ -14,7 +14,8 @@ namespace PacMan
         private static PacManController? _controller;
         private static MazeRenderer? _mazeRenderer;
         private static PelletRenderer? _pelletRenderer;
-        private static List<GhostRenderer> _ghosts;
+        private static List<GhostRenderer>? _ghosts;
+        private static Maze _maze = new();
 
 
 
@@ -31,7 +32,7 @@ namespace PacMan
             _window.Closing += OnClosing;
             _window.FramebufferResize += OnFramebufferResize;
 
-            _window.Run();
+            _window.Run();            
         }
 
         private static void OnLoad()
@@ -44,7 +45,7 @@ namespace PacMan
             gl.Disable(GLEnum.DepthTest); // Not needed for 2D layers
 
             // ✅ Create maze
-            var maze = new Maze();
+            var maze = _maze;
 
             // ✅ Create and init maze renderer first (background)
             _mazeRenderer = new MazeRenderer(gl, maze);
@@ -66,8 +67,7 @@ namespace PacMan
 
             // ✅ Initialize pellets and remove unreachable ones
             maze.InitializePellets();
-            //maze.RemoveUnreachablePellets(_renderer.PositionUV);
-
+          
             // ✅ Create pellet renderer AFTER pellets finalized
             _pelletRenderer = new PelletRenderer(gl, maze);
             _pelletRenderer.Initialize();
@@ -88,7 +88,7 @@ namespace PacMan
             _controller?.Dispose();
             _controller = new PacManController(_window!, startUV)
             {
-                Speed = 0.45f,
+                Speed = 0.10f, // UV units per second
                 EntityRadius = _renderer.Scale * baseRadius,
                 Margin = _renderer.Scale * baseRadius + 0.01f
             };
@@ -107,7 +107,6 @@ namespace PacMan
             }
         }
 
-
         private static void OnUpdate(double dt)
         {
             if (_controller != null)
@@ -115,10 +114,18 @@ namespace PacMan
                 _controller.Update(dt);
 
                 // Feed controller state into renderer
-                if (_renderer != null)
+                if (_renderer != null && _mazeRenderer != null && _pelletRenderer != null && _maze != null)
                 {
                     _renderer.PositionUV = _controller.Position;
                     _renderer.RotationIndex = _controller.RotationIndex;
+                    var pacPos = _controller.Position;
+                    bool ate = _mazeRenderer.TryEatPellet(pacPos); // returns true if pellet was eaten
+                    if (ate)
+                    {
+                        _pelletRenderer.MovePelletOutOfMaze(_controller.Position);
+                        _pelletRenderer?.Render((float)_window!.Time);
+                        _renderer.Chomp(_window!.Time);
+                    }
                 }
             }
         }
