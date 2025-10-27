@@ -1,9 +1,5 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
-using Silk.NET.Core.Attributes;
-using System.Runtime.CompilerServices;
 
 namespace PacMan
 {
