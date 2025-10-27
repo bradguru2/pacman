@@ -88,7 +88,7 @@ namespace PacMan
             _controller?.Dispose();
             _controller = new PacManController(_window!, startUV)
             {
-                Speed = 0.45f,
+                Speed = 0.10f,
                 EntityRadius = _renderer.Scale * baseRadius,
                 Margin = _renderer.Scale * baseRadius + 0.01f
             };
@@ -107,7 +107,6 @@ namespace PacMan
             }
         }
 
-
         private static void OnUpdate(double dt)
         {
             if (_controller != null)
@@ -123,13 +122,9 @@ namespace PacMan
                     bool ate = _mazeRenderer.TryEatPellet(pacPos); // returns true if pellet was eaten
                     if (ate)
                     {
-                        // Convert to maze tile coordinates
-                        int col = (int)(_controller.Position.X * _maze.Columns);
-                        int row = (int)((1.0f - _controller.Position.Y) * _maze.Rows); // Flip Y if maze rows count from top
-                        Vector2D<float> pelletCenter = _maze.GetTileCenterUV(row, col);
-                        _pelletRenderer.DrawBlankAt(pelletCenter);
+                        _pelletRenderer.MovePelletOutOfMaze(_controller.Position);
                         _pelletRenderer?.Render((float)_window!.Time);
-                        _renderer.Chomp();
+                        _renderer.Chomp(_window!.Time);
                     }
                 }
             }
