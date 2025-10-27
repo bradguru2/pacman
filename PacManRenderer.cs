@@ -28,16 +28,16 @@ namespace PacMan
         private int _uRotationLoc;
         private int _uScaleLoc;
 
-        private int _width = 800;
-        private int _height = 600;
+        private int _width = 800; // Default windowed
+        private int _height = 600; // Default windowed
 
         // Chomp event - subscribers will play sound
         public event Action? OnChomp;
 
         // Debounce / smoothing state
         private bool _prevMouthOpen = false;
-        private double _lastChompTime = -9999.0;
-        private readonly double _chompCooldown = 0.18; // seconds minimum between chomps
+        private double _lastChompTime = 0.0;
+        private readonly double _chompCooldown = 0.250; // seconds minimum between chomps
         private readonly float _mouthOpenThreshold = 0.45f; // threshold on mouthAnim to consider "open"
 
         // External controls
@@ -243,8 +243,15 @@ namespace PacMan
 
             _gl.UseProgram(0);
         }
-        
-        public void Chomp() => OnChomp?.Invoke();
+
+        public void Chomp(double currentTime)
+        {
+            if (currentTime - _lastChompTime < _chompCooldown)
+                return;
+
+            _lastChompTime = currentTime;
+            OnChomp?.Invoke();
+        }
 
         private uint CreateShader(ShaderType type, string src)
         {

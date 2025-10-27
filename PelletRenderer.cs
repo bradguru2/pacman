@@ -152,40 +152,39 @@ namespace PacMan
             _gl.UseProgram(0);
         }
 
-        public void DrawBlankAt(Vector2D<float> posUV)
+        public void MovePelletOutOfMaze(Vector2D<float> posUV)
         {
-            ArgumentNullException.ThrowIfNull(_cachedPelletArray, nameof(_cachedPelletArray));
-            float s = _pelletSize;
+            ArgumentNullException.ThrowIfNull(_cachedPelletArray);
 
-            var row = (int)(posUV.Y * _maze.Rows); // Assumed flip has been done already
-            var col = (int)(posUV.X * _maze.Columns);
-            var pelletIndex = _pelletMap[(row, col)];
-            
+            // Convert to maze tile coordinates
+            int col = (int)(posUV.X * _maze.Columns);
+            int row = (int)((1.0f - posUV.Y) * _maze.Rows); // Flip Y if maze rows count from top
+
+            if (!_pelletMap.TryGetValue((row, col), out int pelletIndex))
+                return;
+
+            // Compute float offset in the cached array
+            int floatOffset = pelletIndex * 12;
+
+            // Overwrite the cached vertices for this pellet with degenerate coords (offscreen)
+            for (int i = 0; i < 12; i++)
+                _cachedPelletArray[floatOffset + i] = -10f; // well offscreen
+
             unsafe
             {
-                nint offset = pelletIndex * 12 * sizeof(float) + 1; // Weird, can't make first pellet disappear without + 1
-                _gl.BindVertexArray(_vao);
-                _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);                
-                                
-                fixed(float* v = &_cachedPelletArray[0])
-                {       
+                _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+                fixed (float* v = &_cachedPelletArray[floatOffset])
+                {
                     _gl.BufferSubData(
                         GLEnum.ArrayBuffer,
-                        offset,
-                        (nuint)(11 * sizeof(float)), // Weird, can't make last pellet disappear without making size one less (12 - 1)
+                        (nint)(floatOffset * sizeof(float)),
+                        (nuint)(12 * sizeof(float)),
                         v
-                    );                                 
+                    );
                 }
-
-                _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, 2 * sizeof(float), (void*)0);
-                _gl.EnableVertexAttribArray(0);
-                _gl.UseProgram(_program);
-                _gl.Uniform3(_gl.GetUniformLocation(_program, "uColor"), 0f, 0f, 0f); // draw black or background color
-                _gl.DrawArrays(PrimitiveType.Triangles, 0, 6); // draw just this pellet
                 _gl.BindBuffer(GLEnum.ArrayBuffer, 0);
-                _gl.BindVertexArray(0);                
-                _gl.UseProgram(0);                
             }
         }
+
     }
 }
