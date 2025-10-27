@@ -14,7 +14,8 @@ namespace PacMan
         private static PacManController? _controller;
         private static MazeRenderer? _mazeRenderer;
         private static PelletRenderer? _pelletRenderer;
-        private static List<GhostRenderer> _ghosts;
+        private static List<GhostRenderer>? _ghosts;
+        private static Maze _maze = new();
 
 
 
@@ -31,7 +32,7 @@ namespace PacMan
             _window.Closing += OnClosing;
             _window.FramebufferResize += OnFramebufferResize;
 
-            _window.Run();
+            _window.Run();            
         }
 
         private static void OnLoad()
@@ -44,7 +45,7 @@ namespace PacMan
             gl.Disable(GLEnum.DepthTest); // Not needed for 2D layers
 
             // ✅ Create maze
-            var maze = new Maze();
+            var maze = _maze;
 
             // ✅ Create and init maze renderer first (background)
             _mazeRenderer = new MazeRenderer(gl, maze);
@@ -66,8 +67,7 @@ namespace PacMan
 
             // ✅ Initialize pellets and remove unreachable ones
             maze.InitializePellets();
-            //maze.RemoveUnreachablePellets(_renderer.PositionUV);
-
+          
             // ✅ Create pellet renderer AFTER pellets finalized
             _pelletRenderer = new PelletRenderer(gl, maze);
             _pelletRenderer.Initialize();
@@ -115,10 +115,22 @@ namespace PacMan
                 _controller.Update(dt);
 
                 // Feed controller state into renderer
-                if (_renderer != null)
+                if (_renderer != null && _mazeRenderer != null && _pelletRenderer != null && _maze != null)
                 {
                     _renderer.PositionUV = _controller.Position;
                     _renderer.RotationIndex = _controller.RotationIndex;
+                    var pacPos = _controller.Position;
+                    bool ate = _mazeRenderer.TryEatPellet(pacPos); // returns true if pellet was eaten
+                    if (ate)
+                    {
+                        // Convert to maze tile coordinates
+                        int col = (int)(_controller.Position.X * _maze.Columns);
+                        int row = (int)((1.0f - _controller.Position.Y) * _maze.Rows); // Flip Y if maze rows count from top
+                        Vector2D<float> pelletCenter = _maze.GetTileCenterUV(row, col);
+                        _pelletRenderer.DrawBlankAt(pelletCenter);
+                        _pelletRenderer?.Render((float)_window!.Time);
+                        _renderer.Chomp();
+                    }
                 }
             }
         }

@@ -214,14 +214,6 @@ namespace PacMan
             if (mouthOpen && !_prevMouthOpen && (timeSeconds - _lastChompTime) > _chompCooldown)
             {
                 _lastChompTime = timeSeconds;
-                try
-                {
-                    OnChomp?.Invoke();
-                }
-                catch
-                {
-                    // swallow exceptions from subscribers
-                }
             }
             _prevMouthOpen = mouthOpen;
 
@@ -251,6 +243,8 @@ namespace PacMan
 
             _gl.UseProgram(0);
         }
+        
+        public void Chomp() => OnChomp?.Invoke();
 
         private uint CreateShader(ShaderType type, string src)
         {

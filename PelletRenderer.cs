@@ -2,6 +2,8 @@ using Silk.NET.OpenGL;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
+using Silk.NET.Core.Attributes;
+using System.Runtime.CompilerServices;
 
 namespace PacMan
 {
@@ -15,20 +17,26 @@ namespace PacMan
         private uint _superVAO, _superVBO;
         private uint _superCount;
         private int _iColorLoc, _iTimeLoc;
-
-
+        private readonly float _pelletSize;
+        private readonly float _superPelletSize;
+        private readonly Dictionary<(int, int), int> _pelletMap = new(); // Glue Maze row/col to pellet index
+        private readonly List<float> _verts = [];
+        private readonly List<float> _superVerts = [];
+        private float[]? _cachedPelletArray;
 
 
         public PelletRenderer(GL gl, Maze maze)
         {
             _gl = gl;
             _maze = maze;
+            _pelletSize = maze.TileW * 0.10f;
+            _superPelletSize = maze.TileW * 0.18f;
+            _cachedPelletArray = null;
         }
 
         unsafe public void Initialize()
         {
-            var verts = new List<float>();
-            var superVerts = new List<float>();
+            var pelletIndex = -1;
 
             for (int r = 0; r < _maze.Rows; r++)
             {
@@ -39,36 +47,46 @@ namespace PacMan
 
                     if (_maze.Pellets[r, c])
                     {
-                        float s = _maze.TileW * 0.10f; // regular pellet
-                        verts.AddRange(new float[]
-                        {
-                            u - s, v - s,  u + s, v - s,  u + s, v + s,
-                            u - s, v - s,  u + s, v + s,  u - s, v + s
-                        });
+                        float s = _pelletSize;
+                        _verts.AddRange(
+                        [
+                            u - s, v - s,
+                            u + s, v - s,
+                            u + s, v + s,
+                            u - s, v - s,
+                            u + s, v + s,
+                            u - s, v + s
+                        ]);
+                        _pelletMap[(r, c)] = ++pelletIndex;
                     }
                     else if (_maze.SuperPellets[r, c])
                     {
-                        float s = _maze.TileW * 0.18f; // slightly larger
-                        superVerts.AddRange(new float[]
-                        {
-                            u - s, v - s,  u + s, v - s,  u + s, v + s,
-                            u - s, v - s,  u + s, v + s,  u - s, v + s
-                        });
+                        float s = _superPelletSize;
+                        _superVerts.AddRange(
+                        [
+                            u - s, v - s,
+                            u + s, v - s,
+                            u + s, v + s,
+                            u - s, v - s,
+                            u + s, v + s,
+                            u - s, v + s
+                        ]);
                     }
                 }
             }
 
-            _pelletCount = (uint)(verts.Count / 2);
-            _superCount = (uint)(superVerts.Count / 2);
+            _pelletCount = (uint)(_verts.Count / 2);
+            _superCount = (uint)(_superVerts.Count / 2);
 
             // VAO/VBO for normal pellets
             _vao = _gl.GenVertexArray();
             _vbo = _gl.GenBuffer();
             _gl.BindVertexArray(_vao);
             _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
-            fixed (float* v = verts.ToArray())
+            _cachedPelletArray = [.. _verts];
+            fixed(float* v = &_cachedPelletArray[0])
             {
-                _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(verts.Count * sizeof(float)), v, GLEnum.StaticDraw);
+                _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(_verts.Count * sizeof(float)), v, GLEnum.StaticDraw);
             }
             _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, 2 * sizeof(float), (void*)0);
             _gl.EnableVertexAttribArray(0);
@@ -78,9 +96,9 @@ namespace PacMan
             _superVBO = _gl.GenBuffer();
             _gl.BindVertexArray(_superVAO);
             _gl.BindBuffer(GLEnum.ArrayBuffer, _superVBO);
-            fixed (float* v = superVerts.ToArray())
+            fixed (float* v = _superVerts.ToArray())
             {
-                _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(superVerts.Count * sizeof(float)), v, GLEnum.StaticDraw);
+                _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(_superVerts.Count * sizeof(float)), v, GLEnum.StaticDraw);
             }
             _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, 2 * sizeof(float), (void*)0);
             _gl.EnableVertexAttribArray(0);
@@ -134,6 +152,40 @@ namespace PacMan
             _gl.UseProgram(0);
         }
 
+        public void DrawBlankAt(Vector2D<float> posUV)
+        {
+            ArgumentNullException.ThrowIfNull(_cachedPelletArray, nameof(_cachedPelletArray));
+            float s = _pelletSize;
 
+            var row = (int)(posUV.Y * _maze.Rows); // Assumed flip has been done already
+            var col = (int)(posUV.X * _maze.Columns);
+            var pelletIndex = _pelletMap[(row, col)];
+            
+            unsafe
+            {
+                nint offset = pelletIndex * 12 * sizeof(float) + 1; // Weird, can't make first pellet disappear without + 1
+                _gl.BindVertexArray(_vao);
+                _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);                
+                                
+                fixed(float* v = &_cachedPelletArray[0])
+                {       
+                    _gl.BufferSubData(
+                        GLEnum.ArrayBuffer,
+                        offset,
+                        (nuint)(11 * sizeof(float)), // Weird, can't make last pellet disappear without making size one less (12 - 1)
+                        v
+                    );                                 
+                }
+
+                _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, 2 * sizeof(float), (void*)0);
+                _gl.EnableVertexAttribArray(0);
+                _gl.UseProgram(_program);
+                _gl.Uniform3(_gl.GetUniformLocation(_program, "uColor"), 0f, 0f, 0f); // draw black or background color
+                _gl.DrawArrays(PrimitiveType.Triangles, 0, 6); // draw just this pellet
+                _gl.BindBuffer(GLEnum.ArrayBuffer, 0);
+                _gl.BindVertexArray(0);                
+                _gl.UseProgram(0);                
+            }
+        }
     }
 }
