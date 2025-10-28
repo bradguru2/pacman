@@ -138,9 +138,8 @@ namespace PacMan
             {
                 ctx.Fill(Color.Transparent);
                 ctx.DrawText(text, _font, Color.Yellow, new PointF(10, 10));
-            });
-
-            img.Mutate(ctx => ctx.Flip(FlipMode.Vertical));
+                ctx.Flip(FlipMode.Vertical);
+            });            
 
             // Convert to pixel data
             var pixels = new byte[_width * 64 * 4];
