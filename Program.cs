@@ -16,6 +16,8 @@ namespace PacMan
         private static PelletRenderer? _pelletRenderer;
         private static List<GhostRenderer>? _ghosts;
         private static Maze _maze = new();
+        private static HudRenderer? _hud;
+
 
 
 
@@ -105,6 +107,10 @@ namespace PacMan
             {
                 Console.WriteLine($"Audio init failed: {ex.Message}");
             }
+
+            // ✅ Create HUD
+            _hud = new HudRenderer(gl, _window!.Size.X, _window.Size.Y);
+            _hud.Initialize();
         }
 
         private static void OnUpdate(double dt)
@@ -114,7 +120,7 @@ namespace PacMan
                 _controller.Update(dt);
 
                 // Feed controller state into renderer
-                if (_renderer != null && _mazeRenderer != null && _pelletRenderer != null && _maze != null)
+                if (_renderer != null && _mazeRenderer != null && _pelletRenderer != null && _maze != null && _hud != null)
                 {
                     _renderer.PositionUV = _controller.Position;
                     _renderer.RotationIndex = _controller.RotationIndex;
@@ -125,6 +131,7 @@ namespace PacMan
                         _pelletRenderer.MovePelletOutOfMaze(_controller.Position);
                         _pelletRenderer?.Render((float)_window!.Time);
                         _renderer.Chomp(_window!.Time);
+                        _hud?.AddScore(10);
                     }
                 }
             }
@@ -141,14 +148,18 @@ namespace PacMan
             // ✅ Draw maze first
             _mazeRenderer?.Render();
 
+            // ✅ Then pellets
             _pelletRenderer?.Render((float)_window!.Time);
 
             // ✅ Then Pac-Man
             _renderer?.Render((float)_window!.Time);
 
             // ✅ Then ghosts
-            foreach (var ghost in _ghosts)
-                ghost.Render(); 
+            foreach (var ghost in _ghosts!)
+                ghost.Render();
+
+            // ✅ Then HUD
+            _hud?.Render();            
         }
 
 
