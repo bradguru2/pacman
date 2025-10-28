@@ -36,11 +36,10 @@ namespace PacMan
             try
             {
                 _font = SystemFonts.Families.First(f => f.Name == "Ubuntu Mono").CreateFont(64); // use your working one
-                Console.WriteLine($"[DIAG] 'font={_font.Name}' loaded for HUD");
             }
             catch
             {
-                _font = SystemFonts.CreateFont("Arial", 24); // fallback
+                _font = SystemFonts.CreateFont("Arial", 64); // fallback
             }
         }
 
