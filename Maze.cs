@@ -23,7 +23,6 @@ namespace PacMan
         public bool[,] Pellets { get; private set; }
         public bool[,] SuperPellets { get; private set; }
 
-
         public Maze()
         {
             var map = MazeData.Layout ?? throw new InvalidOperationException("MazeData.Map is null.");
@@ -123,7 +122,10 @@ namespace PacMan
                 if (Collision.CircleIntersectsRect(posUV, radius, w.x, w.y, w.w, w.h))
                     return true;
             }
-            return false;
+
+            int col = (int)(posUV.X / TileW);
+            int row = (int)((1 - posUV.Y) / TileH); // Flip Y if maze rows count from top
+            return !IsWalkable(row, col);
         }
     }
 }
