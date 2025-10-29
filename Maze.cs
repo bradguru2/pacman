@@ -98,9 +98,6 @@ namespace PacMan
         }
 
 
-
-
-
         public Vector2D<float> GetTileCenterUV(int row, int col)
         {
             // Convert maze grid coords (row, col) to normalized UV center.

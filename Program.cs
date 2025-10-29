@@ -101,7 +101,17 @@ namespace PacMan
             {
                 _audio = new GameAudio("Assets/Audio/waka.wav");
                 _audio.Initialize();
-                _renderer.OnChomp += () => _audio?.PlayChomp();
+                _renderer.OnChomp += () => {
+                    _audio?.PlayChomp();
+                    _hud?.AddScore(10);
+                };
+                _controller.OnSuperPelletEaten += () =>
+                {
+                    _audio?.PlayChomp();
+                    _hud?.AddScore(50); // example score bonus
+                    //_ghostManager?.EnterFrightenedMode(); // later step when AI exists
+                };
+
             }
             catch (Exception ex)
             {
@@ -120,19 +130,27 @@ namespace PacMan
                 _controller.Update(dt);
 
                 // Feed controller state into renderer
-                if (_renderer != null && _mazeRenderer != null && _pelletRenderer != null && _maze != null && _hud != null)
+                if (_renderer != null && _pelletRenderer != null && _hud != null)
                 {
+                    var doRender = false;
                     _renderer.PositionUV = _controller.Position;
                     _renderer.RotationIndex = _controller.RotationIndex;
-                    var pacPos = _controller.Position;
-                    bool ate = _mazeRenderer.TryEatPellet(pacPos); // returns true if pellet was eaten
-                    if (ate)
+
+                    // returns true if pellet was eaten
+                    if (_controller.TryEatPellet(_renderer.PositionUV))
                     {
-                        _pelletRenderer.MovePelletOutOfMaze(_controller.Position);
-                        _pelletRenderer?.Render((float)_window!.Time);
+                        _pelletRenderer.MovePelletOutOfMaze(_renderer.PositionUV);
+                        doRender = true;
                         _renderer.Chomp(_window!.Time);
-                        _hud?.AddScore(10);
                     }
+                    else if (_controller.TryEatSuperPellet(_renderer.PositionUV))
+                    {
+                        _pelletRenderer.MoveSuperPelletOutOfMaze(_renderer.PositionUV);
+                        _controller.RaiseSuperPelletEaten();
+                        doRender = true;
+                    }
+                    if (doRender)
+                        _pelletRenderer.Render((float)_window!.Time);
                 }
             }
         }
