@@ -19,6 +19,8 @@ namespace PacMan
         private readonly List<float> _verts = [];
         private readonly List<float> _superVerts = [];
         private float[]? _cachedPelletArray;
+        private float[]? _cachedSuperVerts;                          // full float array for all super pellets
+        private Dictionary<(int r, int c), int> _superPelletMap = new();    // map tile -> pellet index
 
 
         public PelletRenderer(GL gl, Maze maze)
@@ -28,11 +30,13 @@ namespace PacMan
             _pelletSize = maze.TileW * 0.10f;
             _superPelletSize = maze.TileW * 0.18f;
             _cachedPelletArray = null;
+            _cachedSuperVerts = null;
         }
 
         unsafe public void Initialize()
         {
             var pelletIndex = -1;
+            var superPelletIndex = -1;
 
             for (int r = 0; r < _maze.Rows; r++)
             {
@@ -67,6 +71,8 @@ namespace PacMan
                             u + s, v + s,
                             u - s, v + s
                         ]);
+                        _superPelletMap[(r, c)] = ++superPelletIndex;
+                        Console.WriteLine($"[DIAG] Adding super pellet at row={r}, col={c}, index={superPelletIndex}");
                     }
                 }
             }
@@ -92,7 +98,8 @@ namespace PacMan
             _superVBO = _gl.GenBuffer();
             _gl.BindVertexArray(_superVAO);
             _gl.BindBuffer(GLEnum.ArrayBuffer, _superVBO);
-            fixed (float* v = _superVerts.ToArray())
+            _cachedSuperVerts = [.. _superVerts];
+            fixed (float* v = &_cachedSuperVerts[0])
             {
                 _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(_superVerts.Count * sizeof(float)), v, GLEnum.StaticDraw);
             }
@@ -147,29 +154,40 @@ namespace PacMan
             _gl.BindVertexArray(0);
             _gl.UseProgram(0);
         }
-
         public void MovePelletOutOfMaze(Vector2D<float> posUV)
         {
-            ArgumentNullException.ThrowIfNull(_cachedPelletArray);
+            OnMovePelletOutOfMaze(posUV, _cachedPelletArray, _pelletMap, _vbo);
+        }
+        
+        public void MoveSuperPelletOutOfMaze(Vector2D<float> posUV)
+        {
+            OnMovePelletOutOfMaze(posUV, _cachedSuperVerts, _superPelletMap, _superVBO);
+        }
+
+        private void OnMovePelletOutOfMaze(Vector2D<float> posUV, float []? cachedFloatArray, Dictionary<(int, int), int> positionMap, uint vbo)
+        {
+            ArgumentNullException.ThrowIfNull(cachedFloatArray);
 
             // Convert to maze tile coordinates
             int col = (int)(posUV.X * _maze.Columns);
             int row = (int)((1.0f - posUV.Y) * _maze.Rows); // Flip Y if maze rows count from top
 
-            if (!_pelletMap.TryGetValue((row, col), out int pelletIndex))
+            if (!positionMap.TryGetValue((row, col), out int pelletIndex))
                 return;
+
+            Console.WriteLine($"[DIAG] Removing pellet at row={row}, col={col}, index={pelletIndex}");
 
             // Compute float offset in the cached array
             int floatOffset = pelletIndex * 12;
 
             // Overwrite the cached vertices for this pellet with degenerate coords (offscreen)
             for (int i = 0; i < 12; i++)
-                _cachedPelletArray[floatOffset + i] = -10f; // well offscreen
+                cachedFloatArray[floatOffset + i] = -10f; // well offscreen
 
             unsafe
             {
-                _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
-                fixed (float* v = &_cachedPelletArray[floatOffset])
+                _gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
+                fixed (float* v = &cachedFloatArray[floatOffset])
                 {
                     _gl.BufferSubData(
                         GLEnum.ArrayBuffer,

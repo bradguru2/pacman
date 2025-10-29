@@ -12,6 +12,7 @@
 // KeyDown/KeyUp handlers accordingly (comments inline).
 
 using System;
+using System.Configuration.Assemblies;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -32,6 +33,9 @@ namespace PacMan
         public float Speed { get; set; } = 0.45f; // UV units per second (approx)
 
         public float EntityRadius { get; set; } = 0.05f; // default radius in UV units
+
+        public event Action? OnSuperPelletEaten;
+
 
         private readonly IWindow _window;
         private readonly IInputContext _input;
@@ -137,6 +141,11 @@ namespace PacMan
             _maze = maze;
         }
 
+        public void RaiseSuperPelletEaten()
+        {
+            OnSuperPelletEaten?.Invoke();
+        }
+
         // Key down handler – sets flag
         private void OnKeyDown(IKeyboard keyboard, Key key, int arg)
         {
@@ -161,6 +170,47 @@ namespace PacMan
                 case Key.Down: _downDown = false; break;
             }
         }
+
+        public bool TryEatPellet(Vector2D<float> posUV)
+        {
+            // Clamp UV to [0,1] range just in case
+            float u = Math.Clamp(posUV.X, 0f, 1f);
+            float v = Math.Clamp(posUV.Y, 0f, 1f);
+
+            // Convert to maze tile coordinates
+            int col = (int)(u * _maze!.Columns);
+            int row = (int)((1.0f - v) * _maze.Rows); // Flip Y if maze rows count from top
+
+            // Safety guard
+            if (row < 0 || row >= _maze.Rows || col < 0 || col >= _maze.Columns)
+                return false;
+
+            // Check if pellet exists
+            if (_maze.Pellets[row, col])
+            {
+                _maze.Pellets[row, col] = false; // consume pellet                
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryEatSuperPellet(Vector2D<float> posUV)
+        {
+            int col = (int)(posUV.X * _maze!.Columns);
+            int row = (int)((1.0f - posUV.Y) * _maze.Rows);
+
+            if (row < 0 || row >= _maze.Rows || col < 0 || col >= _maze.Columns)
+                return false;
+
+            if (_maze.SuperPellets[row, col])
+            {
+                _maze.SuperPellets[row, col] = false;
+                return true;
+            }
+            return false;
+        }
+
 
         public void Dispose()
         {

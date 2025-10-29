@@ -13,7 +13,6 @@ namespace PacMan
     {
         private readonly GL _gl;
         private readonly Maze _maze;
-
         private uint _vao;
         private uint _vbo;
         private int _vertexCount;
@@ -162,31 +161,7 @@ namespace PacMan
 
             _gl.BindVertexArray(0);
             _gl.UseProgram(0);
-        }
-
-        public bool TryEatPellet(Vector2D<float> posUV)
-        {
-            // Clamp UV to [0,1] range just in case
-            float u = Math.Clamp(posUV.X, 0f, 1f);
-            float v = Math.Clamp(posUV.Y, 0f, 1f);
-
-            // Convert to maze tile coordinates
-            int col = (int)(u * _maze.Columns);
-            int row = (int)((1.0f - v) * _maze.Rows); // Flip Y if maze rows count from top
-
-            // Safety guard
-            if (row < 0 || row >= _maze.Rows || col < 0 || col >= _maze.Columns)
-                return false;
-
-            // Check if pellet exists
-            if (_maze.Pellets[row, col])
-            {
-                _maze.Pellets[row, col] = false; // consume pellet                
-                return true;
-            }
-
-            return false;
-        }
+        }       
 
         public void Dispose()
         {
