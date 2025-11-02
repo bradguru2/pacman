@@ -17,6 +17,7 @@ namespace PacMan
         private static List<GhostRenderer>? _ghosts;
         private static Maze _maze = new();
         private static HudRenderer? _hud;
+        private static GhostManager? _ghostManager;
 
 
 
@@ -64,6 +65,8 @@ namespace PacMan
 
             // ✅ Choose a walkable starting tile near center
             Vector2D<float> startUV = maze.GetTileCenterUV(14, 13);
+            startUV.X += maze.TileW / 2f; // nudges him perfectly center
+
             _renderer.PositionUV = startUV;
             _renderer.RotationIndex = 0;
 
@@ -74,14 +77,11 @@ namespace PacMan
             _pelletRenderer = new PelletRenderer(gl, maze);
             _pelletRenderer.Initialize();
 
+            // ✅ Create ghost manager
+            _ghostManager = new GhostManager(maze);
+            
             // Ghosts setup
-            _ghosts =
-            [
-                new(gl, maze.GetTileCenterUV(16, 12), new Vector3D<float>(1.0f, 0.0f, 0.0f)), // Blinky (Red)
-                new(gl, maze.GetTileCenterUV(16, 13), new Vector3D<float>(1.0f, 0.6f, 1.0f)), // Pinky
-                new(gl, maze.GetTileCenterUV(16, 14), new Vector3D<float>(0.0f, 1.0f, 1.0f)), // Inky
-                new(gl, maze.GetTileCenterUV(16, 15), new Vector3D<float>(1.0f, 0.6f, 0.0f))  // Clyde
-            ];
+            _ghosts = [.. _ghostManager.GetGhosts().Select(ghost => new GhostRenderer(gl, ghost, _renderer.Scale * baseRadius))];            
 
             foreach (var ghost in _ghosts)
                 ghost.Initialize();
@@ -94,8 +94,8 @@ namespace PacMan
                 EntityRadius = _renderer.Scale * baseRadius,
                 Margin = _renderer.Scale * baseRadius + 0.01f
             };
-            _controller.SetMaze(maze);
-
+            _controller.SetMaze(maze);            
+            
             // ✅ Hook up chomp audio
             try
             {
@@ -128,6 +128,7 @@ namespace PacMan
             if (_controller != null)
             {
                 _controller.Update(dt);
+                _ghostManager?.Update(dt);
 
                 // Feed controller state into renderer
                 if (_renderer != null && _pelletRenderer != null && _hud != null)
