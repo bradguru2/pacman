@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Silk.NET.Maths;
 
 namespace PacMan
@@ -97,6 +98,25 @@ namespace PacMan
             return ch == ' ' || ch == '.' || ch == 'o';
         }
 
+        public (int row, int col) GetCoordinates(Vector2D<float> uv)
+        {
+            float tX = uv.X * Columns;
+            int col = (int)(tX);
+            col = Math.Clamp(col, 0, Columns - 1);
+
+            float tY = (1.0f - uv.Y) * Rows;   // keep your Y convention
+            int row = (int)(tY);
+            row = Math.Clamp(row, 0, Rows - 1);
+            col = Math.Clamp(col, 0, Columns - 1);
+
+            return (row, col);
+        }
+
+        public Vector2D<float> MapToTileCenterUV(Vector2D<float> incoming)
+        {
+            var (row, col) = GetCoordinates(incoming);
+            return GetTileCenterUV(Rows - row - 1, col);
+        }
 
         public Vector2D<float> GetTileCenterUV(int row, int col)
         {

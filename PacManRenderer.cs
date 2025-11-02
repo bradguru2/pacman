@@ -178,7 +178,7 @@ namespace PacMan
                             color = vec3(0.0);
                     }
 
-                    FragColor = vec4(color, alpha);                    
+                    FragColor = vec4(color, alpha); //FragColor = vec4(1.0, 1.0, 1.0, 1.0);                     
                 }
             ";
 
