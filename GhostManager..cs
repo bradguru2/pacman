@@ -15,6 +15,7 @@ namespace PacMan
         private const int GhostDoorCol = 13;  // roughly center
 
         private const float Speed = 0.10f;
+        private bool _teleporting; // Mutex like
 
         public GhostManager(Maze maze)
         {
@@ -68,13 +69,15 @@ namespace PacMan
                             ghost.PosUV = _maze.GetTileCenterUV(19, col);
                             ghost.Teleport = false;
                             ghost.InBox = false;
+                            _teleporting = false;
                         }
-                        else if (NotTeleoporting() && (col == GhostDoorCol || col == GhostDoorCol + 1))
+                        else if (_teleporting == false && (col == GhostDoorCol || col == GhostDoorCol + 1))
                         {
                             ghost.PosUV.X = _maze.GetTileCenterUV(row, col).X;
                             ghost.Dir = new Vector2D<float>(0, 0.9f);
                             ghost.PosUV += ghost.Dir * Speed * (float)dt;
                             ghost.Teleport = true;
+                            _teleporting = true;
                         }
                         else
                             ghost.PosUV += ghost.Dir * Speed * (float)dt; // Make new move
@@ -85,16 +88,6 @@ namespace PacMan
                 }
             }
         }
-
-        private bool NotTeleoporting()
-        {
-            foreach(var ghost in _ghosts)
-            {
-                if (ghost.Teleport) return false;
-            }
-
-            return true;
-        } 
 
         private Vector2D<float> PickNewDirection(Vector2D<float> current)
         {
