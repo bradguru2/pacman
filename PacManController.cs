@@ -35,7 +35,8 @@ namespace PacMan
         public float EntityRadius { get; set; } = 0.05f; // default radius in UV units
 
         public event Action? OnSuperPelletEaten;
-
+        public event Action? OnPacManCaught;
+        public event Action? OnPacManRespawn;
 
         private readonly IWindow _window;
         private readonly IInputContext _input;
@@ -52,10 +53,15 @@ namespace PacMan
 
         private Maze? _maze;
 
+        private bool _paused = false;
+
+        private readonly Vector2D<float> _respawnPosition;
+
         public PacManController(IWindow window, Vector2D<float> startPosition)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
             Position = startPosition;
+            _respawnPosition = startPosition;
             
             // Create input context from the window (Silk.NET.Windowing extension)
             // This is the common pattern in Silk.NET 2.x
@@ -85,7 +91,7 @@ namespace PacMan
         /// </summary>
         public void Update(double dt)
         {
-            if (_disposed) return;
+            if (_disposed || _paused) return;
 
             // build a direction vector from the current key state
             float dx = 0f, dy = 0f;
@@ -144,6 +150,18 @@ namespace PacMan
         public void RaiseSuperPelletEaten()
         {
             OnSuperPelletEaten?.Invoke();
+        }
+
+        public void RaisePacManCaught()
+        {
+            OnPacManCaught?.Invoke();
+        }
+
+        public void RaisePacmanRespawn()
+        {
+            Position = _respawnPosition;
+            RotationIndex = 0;
+            OnPacManRespawn?.Invoke();
         }
 
         // Key down handler – sets flag
@@ -210,6 +228,10 @@ namespace PacMan
             }
             return false;
         }
+
+        public void Pause() => _paused = true;
+
+        public void Resume() => _paused = false;
 
 
         public void Dispose()
