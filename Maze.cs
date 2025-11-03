@@ -56,8 +56,6 @@ namespace PacMan
                         SuperPellets[r, c] = true;
                 }
             }
-
-            Console.WriteLine($"[DIAG] Pellets={Pellets.Cast<bool>().Count(p => p)} SuperPellets={SuperPellets.Cast<bool>().Count(p => p)}");
         }
 
         private void ParseMap(string[] map)
@@ -115,7 +113,7 @@ namespace PacMan
         public Vector2D<float> MapToTileCenterUV(Vector2D<float> incoming)
         {
             var (row, col) = GetCoordinates(incoming);
-            return GetTileCenterUV(Rows - row - 1, col);
+            return GetTileCenterUV(Rows - row - 1, col); // Y is inverted on GetTileCenterUV in UV space
         }
 
         public Vector2D<float> GetTileCenterUV(int row, int col)

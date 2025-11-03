@@ -16,6 +16,7 @@ namespace PacMan
 
         private const float Speed = 0.10f;
         private bool _teleporting; // Mutex like
+        private bool _paused = false; // Pauses ghost animations
 
         public GhostManager(Maze maze)
         {
@@ -30,6 +31,9 @@ namespace PacMan
 
         public void Update(double dt)
         {
+            // Don't update while paused
+            if (_paused) return;
+
             foreach (var ghost in _ghosts)
             {
                 float r = 0.015f; // constant ghost radius in UV tile units
@@ -73,7 +77,7 @@ namespace PacMan
                         }
                         else if (_teleporting == false && (col == GhostDoorCol || col == GhostDoorCol + 1))
                         {
-                            ghost.PosUV.X = _maze.GetTileCenterUV(row, col).X;
+                            ghost.PosUV.X = _maze.GetTileCenterUV(row, col).X; // Y is inverted but does not matter here
                             ghost.Dir = new Vector2D<float>(0, 0.9f);
                             ghost.PosUV += ghost.Dir * Speed * (float)dt;
                             ghost.Teleport = true;
@@ -95,7 +99,28 @@ namespace PacMan
             return dirs[_rng.Next(dirs.Length)];
         }
 
-        public IEnumerable<Ghost> GetGhosts() => _ghosts;
+        public IEnumerable<Ghost> Ghosts  { get { return _ghosts; } }
+
+        public void Pause() => _paused = true;
+
+        public void Resume() => _paused = false;
+
+        public bool TryCatchPacMan(Vector2D<float> pacManPosition)
+        {
+            foreach (var ghost in _ghosts)
+            {
+                float dx = pacManPosition.X - ghost.PosUV.X;
+                float dy = pacManPosition.Y - ghost.PosUV.Y;
+                float distSq = dx * dx + dy * dy;
+                float hitRadius = 0.018f; // tweak as needed
+
+                if (distSq < hitRadius * hitRadius)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     public class Ghost
@@ -111,7 +136,7 @@ namespace PacMan
             PosUV = pos;
             Dir = dir;
             Color = color;
-        }
+        }        
     }
 
 }

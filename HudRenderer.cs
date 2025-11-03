@@ -130,6 +130,8 @@ namespace PacMan
             UpdateTexture();
         }
 
+        public int Lives { get { return _lives; } }
+
         private void UpdateTexture()
         {
             string text = $"SCORE: {_score}    LIVES: {_lives}";
@@ -158,8 +160,6 @@ namespace PacMan
             }
             _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int)GLEnum.Linear);
             _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int)GLEnum.Linear);
-            
-            Console.WriteLine($"[HUD] Texture updated (Score={_score}, Lives={_lives})");
         }
 
         public void Render()

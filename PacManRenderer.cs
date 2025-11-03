@@ -21,15 +21,17 @@ namespace PacMan
         private uint _vbo;
         private uint _ebo;
         private uint _program;
-
         private int _uResolutionLoc;
         private int _uTimeLoc;
         private int _uPosLoc;
         private int _uRotationLoc;
         private int _uScaleLoc;
-
         private int _width = 800; // Default windowed
         private int _height = 600; // Default windowed
+
+        private bool _isDying = false;
+        private double _deathStartTime;
+
 
         // Chomp event - subscribers will play sound
         public event Action? OnChomp;
@@ -37,8 +39,9 @@ namespace PacMan
         // Debounce / smoothing state
         private bool _prevMouthOpen = false;
         private double _lastChompTime = 0.0;
-        private readonly double _chompCooldown = 0.250; // seconds minimum between chomps
-        private readonly float _mouthOpenThreshold = 0.45f; // threshold on mouthAnim to consider "open"
+        private const double _chompCooldown = 0.250; // seconds minimum between chomps
+        private const float _mouthOpenThreshold = 0.45f; // threshold on mouthAnim to consider "open"
+        private const float DeathDuration = 2.0f; // seconds for death animation
 
         // External controls
         public float Scale { get; set; } = 0.5f; // default scale factor
@@ -226,7 +229,21 @@ namespace PacMan
             if (_uRotationLoc != -1)
                 _gl.Uniform1(_uRotationLoc, (float)RotationIndex);
             if (_uScaleLoc != -1)
-                _gl.Uniform1(_uScaleLoc, Scale);
+            {
+                if (_isDying)
+                {
+                    float t = (float)(_window!.Time - _deathStartTime);
+                    float shrink = MathF.Max(0f, 1f - t / DeathDuration);
+                    _gl.Uniform1(_uScaleLoc, Scale * shrink);
+
+                    if (shrink <= 0f)
+                        _isDying = false; // finished
+                }
+                else
+                {
+                    _gl.Uniform1(_uScaleLoc, Scale);
+                }
+            }
 
             _gl.BindVertexArray(_vao);
             // Force 2D overlay and blending every frame
@@ -248,6 +265,18 @@ namespace PacMan
             _lastChompTime = currentTime;
             OnChomp?.Invoke();
         }
+
+        public void BeginDeathAnimation()
+        {
+            _isDying = true;
+            _deathStartTime = _window!.Time;
+        }
+
+        public bool IsDeathAnimationDone(double currentTime)
+        {
+            return !_isDying && (currentTime - _deathStartTime) > 2.0; // seconds
+        }
+
 
         private uint CreateShader(ShaderType type, string src)
         {

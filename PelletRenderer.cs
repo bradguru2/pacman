@@ -71,8 +71,7 @@ namespace PacMan
                             u + s, v + s,
                             u - s, v + s
                         ]);
-                        _superPelletMap[(r, c)] = ++superPelletIndex;
-                        Console.WriteLine($"[DIAG] Adding super pellet at row={r}, col={c}, index={superPelletIndex}");
+                        _superPelletMap[(r, c)] = ++superPelletIndex;                     
                     }
                 }
             }
@@ -174,8 +173,6 @@ namespace PacMan
 
             if (!positionMap.TryGetValue((row, col), out int pelletIndex))
                 return;
-
-            Console.WriteLine($"[DIAG] Removing pellet at row={row}, col={col}, index={pelletIndex}");
 
             // Compute float offset in the cached array
             int floatOffset = pelletIndex * 12;

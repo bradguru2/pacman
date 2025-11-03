@@ -18,9 +18,8 @@ namespace PacMan
         private static Maze _maze = new();
         private static HudRenderer? _hud;
         private static GhostManager? _ghostManager;
-
-
-
+        private static bool _isPacmanDead = false;
+        private static bool _isGameOver = false;
 
         static void Main(string[] args)
         {
@@ -54,13 +53,11 @@ namespace PacMan
             _mazeRenderer = new MazeRenderer(gl, maze);
             _mazeRenderer.Initialize();
 
-            Console.WriteLine($"[DIAG] Maze rows={maze.Rows} cols={maze.Columns} tiles={maze.Rows * maze.Columns} walls={maze.Walls.Count}");
-
             // ✅ Create Pac-Man
             _renderer = new PacManRenderer(gl, _window!);
             _renderer.Initialize();
 
-            float baseRadius = 0.35f; // must match shader baseRadius
+            const float baseRadius = 0.35f; // must match shader baseRadius
             _renderer.Scale = (maze.TileW * 0.40f) / baseRadius;
 
             // ✅ Choose a walkable starting tile near center
@@ -81,7 +78,7 @@ namespace PacMan
             _ghostManager = new GhostManager(maze);
             
             // Ghosts setup
-            _ghosts = [.. _ghostManager.GetGhosts().Select(ghost => new GhostRenderer(gl, ghost, _renderer.Scale * baseRadius))];            
+            _ghosts = [.. _ghostManager.Ghosts.Select(ghost => new GhostRenderer(gl, ghost, _renderer.Scale * baseRadius))];            
 
             foreach (var ghost in _ghosts)
                 ghost.Initialize();
@@ -121,10 +118,46 @@ namespace PacMan
             // ✅ Create HUD
             _hud = new HudRenderer(gl, _window!.Size.X, _window.Size.Y);
             _hud.Initialize();
+
+            // Wire up pacman caught   
+            _controller.OnPacManCaught += () =>
+            {
+                Console.WriteLine("[GAME] Pac-Man Caught...");
+                _isPacmanDead = true;
+
+                // Freeze inputs and ghost updates
+                _controller.Pause();
+                _ghostManager.Pause();
+
+                // Trigger Pac-Man death animation
+                _renderer.BeginDeathAnimation();
+
+                // Decrement lives
+                _hud!.LoseLife();
+            };
+
+            // Wire up pacman respawn
+            _controller.OnPacManRespawn += () =>
+            {
+                Console.WriteLine("[GAME] Respawning Pac-Man...");
+
+                _isPacmanDead = false;
+                _controller.Resume();
+                _ghostManager.Resume();
+
+                const float baseRadius = 0.35f; // must match shader baseRadius
+                // ✅ Choose a walkable starting tile near center
+                Vector2D<float> startUV = maze.GetTileCenterUV(14, 13);
+                startUV.X += maze.TileW / 2f; // nudges him perfectly center
+                _renderer.Scale = (maze.TileW * 0.40f) / baseRadius;
+                _renderer.PositionUV = startUV;
+                _renderer.RotationIndex = 0;
+            };
         }
 
         private static void OnUpdate(double dt)
         {
+            if (_isPacmanDead || _isGameOver) return;
             if (_controller != null)
             {
                 _controller.Update(dt);
@@ -153,6 +186,11 @@ namespace PacMan
                     if (doRender)
                         _pelletRenderer.Render((float)_window!.Time);
                 }
+
+                if (_ghostManager?.TryCatchPacMan(_controller.Position) ?? false)
+                {
+                    _controller.RaisePacManCaught();
+                }                
             }
         }
 
@@ -170,15 +208,33 @@ namespace PacMan
             // ✅ Then pellets
             _pelletRenderer?.Render((float)_window!.Time);
 
+           
             // ✅ Then Pac-Man
-            _renderer?.Render((float)_window!.Time);
+            if (!_isGameOver) _renderer?.Render((float)_window!.Time);
 
             // ✅ Then ghosts
             foreach (var ghost in _ghosts!)
                 ghost.Render();
 
             // ✅ Then HUD
-            _hud?.Render();            
+            _hud?.Render();
+            
+            if (_isPacmanDead && !_isGameOver)
+            {
+                // After animation duration, check if done
+                if (_renderer!.IsDeathAnimationDone(_window!.Time))
+                {
+                    if (_hud!.Lives <= 0)
+                    {
+                        _isGameOver = true;
+                        Console.WriteLine("[GAME] Game Over!");
+                    }
+                    else
+                    {
+                        _controller!.RaisePacmanRespawn();
+                    }
+                }
+            }
         }
 
 
