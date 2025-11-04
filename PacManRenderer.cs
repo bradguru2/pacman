@@ -146,9 +146,12 @@ namespace PacMan
                     float angle = 0.0;
                     if (uRotation < 0.5)       angle = 0.0;
                     else if (uRotation < 1.5)  angle = -1.5708;
-                    else if (uRotation < 2.5)  angle = 3.1416;
+                    else if (uRotation < 2.5)  angle = -3.1416;
                     else                       angle = 1.5708;
                     vec2 rc = rot(-angle) * centered;
+                    float et; // eye threshold
+                    if (angle == -3.1416) et = -0.45; // flip eye for left
+                    else et = 0.45; // normal eye position
 
                     // Pac-Man body parameters
                     float baseRadius = 0.35;
@@ -174,7 +177,7 @@ namespace PacMan
                         color = bodyColor;
 
                         // eye
-                        vec2 eyePos = vec2(0.0, radius * 0.45);
+                        vec2 eyePos = vec2(0.0, radius * et);
                         float eyeRadius = 0.06 * uScale;
                         float eyeDist = length(rc - eyePos);
                         if (eyeDist < eyeRadius)
