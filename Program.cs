@@ -226,39 +226,43 @@ namespace PacMan
                 ghost.Render();
 
             // ✅ Then fruit
-            // Spawn & render fruit
-            var fruit = _fruitManager?.TrySpawn(_window!.Time);
-            if (!_isGameOver && fruit != null && fruit.Active)
+            if (!_isGameOver)
             {
-                _fruitRenderer?.Render();
-            }
-
-            // Check if Pac-Man ate it
-            if (_fruitManager?.TryEat(_controller!.Position, _window!.Time) ?? false)
-            {
-                Console.WriteLine("[GAME] Pac-Man ate the fruit!");
-                _hud?.AddScore(100);
-            }
-
-            // ✅ Then HUD
-            _hud?.Render();
-            
-            if (_isPacmanDead && !_isGameOver)
-            {
-                // After animation duration, check if done
-                if (_renderer!.IsDeathAnimationDone(_window!.Time))
+                // Spawn & render fruit
+                var fruit = _fruitManager?.TrySpawn(_window!.Time);
+                if (fruit != null && fruit.Active)
                 {
-                    if (_hud!.Lives <= 0)
+                    _fruitRenderer?.Render();
+                }
+
+                // Check if Pac-Man ate it
+                if (_fruitManager?.TryEat(_controller!.Position, _window!.Time) ?? false)
+                {
+                    Console.WriteLine("[GAME] Pac-Man ate the fruit!");
+                    _hud?.AddScore(100);
+                }
+
+
+                if (_isPacmanDead)
+                {
+                    // After animation duration, check if done
+                    if (_renderer!.IsDeathAnimationDone(_window!.Time))
                     {
-                        _isGameOver = true;
-                        Console.WriteLine("[GAME] Game Over!");
-                    }
-                    else
-                    {
-                        _controller!.RaisePacmanRespawn();
+                        if (_hud!.Lives <= 0)
+                        {
+                            _isGameOver = true;
+                            Console.WriteLine("[GAME] Game Over!");
+                        }
+                        else
+                        {
+                            _controller!.RaisePacmanRespawn();
+                        }
                     }
                 }
             }
+            
+            // ✅ Then HUD
+            _hud?.Render();
         }
 
 
