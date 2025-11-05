@@ -22,6 +22,10 @@ namespace PacMan
         private static bool _isGameOver = false;
         private static FruitManager? _fruitManager;
         private static FruitRenderer? _fruitRenderer;
+        // Game progression
+        private static float _level = 1.0f;
+        private static int _pelletsRemaining = 0;
+
 
 
         static void Main(string[] args)
@@ -55,6 +59,9 @@ namespace PacMan
             // ✅ Create and init maze renderer first (background)
             _mazeRenderer = new MazeRenderer(gl, maze);
             _mazeRenderer.Initialize();
+
+            // Reset and Count Pellets
+            ResetPelletsRemaining();
 
             // ✅ Create Pac-Man
             _renderer = new PacManRenderer(gl, _window!);
@@ -182,6 +189,13 @@ namespace PacMan
                     // returns true if pellet was eaten
                     if (_controller.TryEatPellet(_renderer.PositionUV))
                     {
+                        _pelletsRemaining--;
+
+                        if (_pelletsRemaining <= 0)
+                        {
+                            OnLevelComplete();
+                        }
+
                         _pelletRenderer.MovePelletOutOfMaze(_renderer.PositionUV);
                         doRender = true;
                         _renderer.Chomp(_window!.Time);
@@ -239,7 +253,9 @@ namespace PacMan
                 if (_fruitManager?.TryEat(_controller!.Position, _window!.Time) ?? false)
                 {
                     Console.WriteLine("[GAME] Pac-Man ate the fruit!");
-                    _hud?.AddScore(100);
+                    int baseScore = 100;
+                    int levelScore = (int)(baseScore * _level);
+                    _hud?.AddScore(levelScore);
                 }
 
 
@@ -263,6 +279,41 @@ namespace PacMan
             
             // ✅ Then HUD
             _hud?.Render();
+        }
+
+        private static void ResetPelletsRemaining()
+        {
+            _pelletsRemaining = 0;
+            for (int r = 0; r < _maze.Rows; r++)
+            {
+                for (int c = 0; c < _maze.Columns; c++)
+                {
+                    if (_maze.Pellets[r, c]) _pelletsRemaining++;
+                    if (_maze.SuperPellets[r, c]) _pelletsRemaining++;
+                }
+            }
+            Console.WriteLine($"[GAME] Pellets remaining: {_pelletsRemaining}");
+        }
+
+        private static void OnLevelComplete()
+        {
+            Console.WriteLine($"[LEVEL] Level {_level++} complete! Starting next...");
+
+            // Re-initialize maze pellets
+            _maze.InitializePellets();
+
+            _pelletRenderer?.ResetPellets(); // reset pellet renderer state to initial conditions
+
+            ResetPelletsRemaining();
+
+            // Notify GhostManager of new level difficulty
+            _ghostManager?.SetLevel(_level);
+            
+            // Reset fruit manager
+            _fruitManager?.Reset(_window!.Time);
+
+            // Respawn Pac-Man
+            _controller?.RaisePacmanRespawn();
         }
 
 

@@ -163,7 +163,7 @@ namespace PacMan
             OnMovePelletOutOfMaze(posUV, _cachedSuperVerts, _superPelletMap, _superVBO);
         }
 
-        private void OnMovePelletOutOfMaze(Vector2D<float> posUV, float []? cachedFloatArray, Dictionary<(int, int), int> positionMap, uint vbo)
+        private void OnMovePelletOutOfMaze(Vector2D<float> posUV, float[]? cachedFloatArray, Dictionary<(int, int), int> positionMap, uint vbo)
         {
             ArgumentNullException.ThrowIfNull(cachedFloatArray);
 
@@ -195,6 +195,12 @@ namespace PacMan
                 }
                 _gl.BindBuffer(GLEnum.ArrayBuffer, 0);
             }
+        }
+
+        public void ResetPellets()
+        {
+            _cachedPelletArray = [.. _verts];
+            _cachedSuperVerts = [.. _superVerts];
         }
 
     }
