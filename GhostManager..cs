@@ -55,7 +55,7 @@ namespace PacMan
                     var (row, col) = _maze.GetCoordinates(p);
                     if (!_maze.IsWalkable(row, col) && !ghost.Teleport)
                     {
-                        ghost.PosUV -= ghost.Dir * Speed * (float)dt;  // Undo this component of the proposed move
+                        ghost.PosUV -= ghost.Dir * Speed * _level * (float)dt;  // Undo this component of the proposed move
                         ghost.PosUV = _maze.MapToTileCenterUV(ghost.PosUV); // Snap to center of tile
                         blocked = true;
                         break; // We can't move diagonally so either  X or Y
@@ -126,7 +126,7 @@ namespace PacMan
 
         public void SetLevel(float level)
         {
-            _level = level;
+            _level += level * 0.125f; // scale level effect
         }
     }
 

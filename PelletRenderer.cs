@@ -153,6 +153,7 @@ namespace PacMan
             _gl.BindVertexArray(0);
             _gl.UseProgram(0);
         }
+
         public void MovePelletOutOfMaze(Vector2D<float> posUV)
         {
             OnMovePelletOutOfMaze(posUV, _cachedPelletArray, _pelletMap, _vbo);
@@ -199,8 +200,33 @@ namespace PacMan
 
         public void ResetPellets()
         {
-            _cachedPelletArray = [.. _verts];
-            _cachedSuperVerts = [.. _superVerts];
+            if (_cachedPelletArray == null || _cachedSuperVerts == null)
+                return;
+
+            // Rebuild cached arrays
+            for (int i=0; i < _verts.Count; i++)
+                _cachedPelletArray![i] = _verts[i];
+            for (int i = 0; i < _superVerts.Count; i++)
+                _cachedSuperVerts![i] = _superVerts[i];
+            
+            unsafe
+            {
+                // Reset normal pellets buffer
+                _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+                fixed (float* v = &_cachedPelletArray[0])
+                {
+                    _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(_verts.Count * sizeof(float)), v, GLEnum.StaticDraw);
+                }
+
+                // Reset super pellets buffer
+                _gl.BindBuffer(GLEnum.ArrayBuffer, _superVBO);
+                fixed (float* v = &_cachedSuperVerts[0])
+                {
+                    _gl.BufferData(GLEnum.ArrayBuffer, (nuint)(_superVerts.Count * sizeof(float)), v, GLEnum.StaticDraw);
+                }
+                
+                _gl.BindBuffer(GLEnum.ArrayBuffer, 0);
+            }                
         }
 
     }

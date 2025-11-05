@@ -32,7 +32,7 @@ namespace PacMan
         {
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(1024, 768);
-            options.Title = "Pac-Man Demo (movement)";
+            options.Title = "Pac-Man Demo - Silk.NET";
 
             _window = Window.Create(options);
             _window.Load += OnLoad;
@@ -60,9 +60,6 @@ namespace PacMan
             _mazeRenderer = new MazeRenderer(gl, maze);
             _mazeRenderer.Initialize();
 
-            // Reset and Count Pellets
-            ResetPelletsRemaining();
-
             // ✅ Create Pac-Man
             _renderer = new PacManRenderer(gl, _window!);
             _renderer.Initialize();
@@ -83,6 +80,9 @@ namespace PacMan
             // ✅ Create pellet renderer AFTER pellets finalized
             _pelletRenderer = new PelletRenderer(gl, maze);
             _pelletRenderer.Initialize();
+
+            // ✅ Count pellets remaining
+            ResetPelletsRemaining();
 
             // ✅ Create ghost manager
             _ghostManager = new GhostManager(maze);
@@ -191,23 +191,25 @@ namespace PacMan
                     {
                         _pelletsRemaining--;
 
-                        if (_pelletsRemaining <= 0)
-                        {
-                            OnLevelComplete();
-                        }
-
                         _pelletRenderer.MovePelletOutOfMaze(_renderer.PositionUV);
                         doRender = true;
                         _renderer.Chomp(_window!.Time);
                     }
                     else if (_controller.TryEatSuperPellet(_renderer.PositionUV))
                     {
+                        _pelletsRemaining--;
+
                         _pelletRenderer.MoveSuperPelletOutOfMaze(_renderer.PositionUV);
                         _controller.RaiseSuperPelletEaten();
                         doRender = true;
                     }
                     if (doRender)
                         _pelletRenderer.Render((float)_window!.Time);
+
+                    if (_pelletsRemaining <= 0)
+                    {
+                        OnLevelComplete();
+                    }    
                 }
 
                 if (_ghostManager?.TryCatchPacMan(_controller.Position) ?? false)
@@ -299,6 +301,9 @@ namespace PacMan
         {
             Console.WriteLine($"[LEVEL] Level {_level++} complete! Starting next...");
 
+            _ghostManager?.Pause();
+            _controller?.Pause();
+
             // Re-initialize maze pellets
             _maze.InitializePellets();
 
@@ -314,6 +319,12 @@ namespace PacMan
 
             // Respawn Pac-Man
             _controller?.RaisePacmanRespawn();
+
+            // Notify controller of level up (speed increase, etc)
+            _controller?.NextLevel();
+
+            _ghostManager?.Resume();
+            _controller?.Resume();
         }
 
 
