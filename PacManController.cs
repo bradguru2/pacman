@@ -57,12 +57,14 @@ namespace PacMan
 
         private readonly Vector2D<float> _respawnPosition;
 
+        private int _level = 1;
+
         public PacManController(IWindow window, Vector2D<float> startPosition)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
             Position = startPosition;
             _respawnPosition = startPosition;
-            
+
             // Create input context from the window (Silk.NET.Windowing extension)
             // This is the common pattern in Silk.NET 2.x
             _input = _window.CreateInput();
@@ -83,6 +85,12 @@ namespace PacMan
                 // No physical keyboard found — nothing to subscribe to.
                 _keyboard = null;
             }
+        }
+        
+        public void NextLevel()
+        {
+            _level++;
+            Speed = MathF.Min(Speed + 0.025f, 0.75f); // increase speed slightly each level
         }
 
         /// <summary>

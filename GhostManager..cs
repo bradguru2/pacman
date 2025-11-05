@@ -17,6 +17,8 @@ namespace PacMan
         private const float Speed = 0.10f;
         private bool _teleporting; // Mutex like
         private bool _paused = false; // Pauses ghost animations
+        private float _level = 1.0f;
+
 
         public GhostManager(Maze maze)
         {
@@ -53,7 +55,7 @@ namespace PacMan
                     var (row, col) = _maze.GetCoordinates(p);
                     if (!_maze.IsWalkable(row, col) && !ghost.Teleport)
                     {
-                        ghost.PosUV -= ghost.Dir * Speed * (float)dt;  // Undo this component of the proposed move
+                        ghost.PosUV -= ghost.Dir * Speed * _level * (float)dt;  // Undo this component of the proposed move
                         ghost.PosUV = _maze.MapToTileCenterUV(ghost.PosUV); // Snap to center of tile
                         blocked = true;
                         break; // We can't move diagonally so either  X or Y
@@ -79,16 +81,16 @@ namespace PacMan
                         {
                             ghost.PosUV.X = _maze.GetTileCenterUV(row, col).X; // Y is inverted but does not matter here
                             ghost.Dir = new Vector2D<float>(0, 0.9f);
-                            ghost.PosUV += ghost.Dir * Speed * (float)dt;
+                            ghost.PosUV += ghost.Dir * Speed * _level * (float)dt;
                             ghost.Teleport = true;
                             _teleporting = true;
                         }
                         else
-                            ghost.PosUV += ghost.Dir * Speed * (float)dt; // Make new move
-
+                            ghost.PosUV += ghost.Dir * Speed * _level * (float)dt;
                     }
                     else
-                        ghost.PosUV += ghost.Dir * Speed * (float)dt; // Make new move
+                        ghost.PosUV += ghost.Dir * Speed * _level * (float)dt;
+
                 }
             }
         }
@@ -120,6 +122,11 @@ namespace PacMan
                 }
             }
             return false;
+        }
+
+        public void SetLevel(float level)
+        {
+            _level += level * 0.125f; // scale level effect
         }
     }
 

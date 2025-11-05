@@ -5,8 +5,15 @@ namespace PacMan
     public class FruitManager(Maze maze, Fruit fruit, double _spawnTime)
     {
         private readonly Maze _maze = maze;
-        private readonly Fruit _fruit = fruit;        
+        private readonly Fruit _fruit = fruit;
         private bool _spawned = false;
+        
+        public void Reset(double currentTime)
+        {
+            _spawned = false;
+            _fruit.Active = false;
+            _spawnTime = currentTime;
+        }
 
         public Fruit TrySpawn(double currentTime)
         {
