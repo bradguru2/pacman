@@ -120,8 +120,17 @@ namespace PacMan
         public void Render()
         {
             _gl.UseProgram(_program);
-
-            _gl.Uniform3(_uColorLoc, _ghost.Color.X, _ghost.Color.Y, _ghost.Color.Z);
+            
+            if (_ghost.Frightened)
+            {
+                // Blue color when frightened
+                _gl.Uniform3(_uColorLoc, 0.2f, 0.4f, 1.0f);
+            }
+            else
+            {
+                _gl.Uniform3(_uColorLoc, _ghost.Color.X, _ghost.Color.Y, _ghost.Color.Z);
+            }
+                
             _gl.Uniform2(_uPosLoc, _ghost.PosUV.X, _ghost.PosUV.Y);
             _gl.Uniform1(_uScaleLoc, _scale);
 

@@ -11,7 +11,7 @@ namespace PacMan
         private readonly Maze _maze;
         private readonly List<Ghost> _ghosts = new();
         private readonly Random _rng = new();
-        private const int GhostDoorRow = 12;  
+        private const int GhostDoorRow = 12;
         private const int GhostDoorCol = 13;  // roughly center
 
         private const float Speed = 0.10f;
@@ -38,9 +38,11 @@ namespace PacMan
 
             foreach (var ghost in _ghosts)
             {
+                if (ghost.IsDead)
+                    continue;
                 float r = 0.015f; // constant ghost radius in UV tile units
                 bool blocked = false;
-                
+
                 Vector2D<float>[] probes =
                 {
                     new(ghost.PosUV.X + r, ghost.PosUV.Y),  // right probe
@@ -69,7 +71,7 @@ namespace PacMan
                     if (ghost.InBox)
                     {
                         var (row, col) = _maze.GetCoordinates(ghost.PosUV);
-                        
+
                         if (row <= GhostDoorRow - 1)
                         {
                             ghost.PosUV = _maze.GetTileCenterUV(19, col);
@@ -101,7 +103,7 @@ namespace PacMan
             return dirs[_rng.Next(dirs.Length)];
         }
 
-        public IEnumerable<Ghost> Ghosts  { get { return _ghosts; } }
+        public IEnumerable<Ghost> Ghosts { get { return _ghosts; } }
 
         public void Pause() => _paused = true;
 
@@ -118,32 +120,66 @@ namespace PacMan
 
                 if (distSq < hitRadius * hitRadius)
                 {
-                    return true;
+                    return !ghost.Frightened;
                 }
             }
             return false;
+        }
+
+        public bool TryAvoidPacMan(Vector2D<float> pacManPosition)
+        {
+            foreach (var ghost in _ghosts)
+            {
+                float dx = pacManPosition.X - ghost.PosUV.X;
+                float dy = pacManPosition.Y - ghost.PosUV.Y;
+                float distSq = dx * dx + dy * dy;
+                float hitRadius = 0.018f; // tweak as needed
+
+                if (distSq < hitRadius * hitRadius)
+                {
+                    if (ghost.Frightened == true)
+                    {
+                        ghost.Dir = new Vector2D<float>(0, 0.9f);
+                        ghost.PosUV = ghost.StartingPosUV;
+                        ghost.InBox = true;
+                        ghost.IsDead = true;
+                        Console.WriteLine("[GHOST] Ghost eaten and returning to box");
+                    }
+                    
+                    return !ghost.Frightened;
+                }
+            }
+            return true;
         }
 
         public void SetLevel(float level)
         {
             _level += level * 0.125f; // scale level effect
         }
+
+        public void SetFrightened(bool value)
+        {
+            foreach (var ghost in _ghosts)
+            {
+                ghost.Frightened = value;
+                if (value == false)
+                    ghost.IsDead = false;
+            }
+
+            Console.WriteLine($"[GHOST] All ghosts frightened = {value}");
+        }
     }
 
-    public class Ghost
+    public class Ghost(Vector2D<float> pos, Vector2D<float> dir, Vector3D<float> color)
     {
-        public Vector2D<float> PosUV;
-        public Vector2D<float> Dir;
-        public Vector3D<float> Color;
-        internal bool InBox = true;
-        internal bool Teleport = false;
-
-        public Ghost(Vector2D<float> pos, Vector2D<float> dir, Vector3D<float> color)
-        {
-            PosUV = pos;
-            Dir = dir;
-            Color = color;
-        }        
+        public Vector2D<float> PosUV = pos;
+        public Vector2D<float> Dir = dir;
+        public Vector3D<float> Color = color;
+        public readonly Vector2D<float> StartingPosUV = pos;
+        public bool InBox = true;
+        public bool Teleport = false;
+        public bool Frightened = false;
+        public bool IsDead = false;
     }
 
 }

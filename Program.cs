@@ -122,7 +122,8 @@ namespace PacMan
                 {
                     _audio?.PlayChomp();
                     _hud?.AddScore(50); // example score bonus
-                    //_ghostManager?.EnterFrightenedMode(); // later step when AI exists
+                    _ghostManager?.SetFrightened(true);
+                    _renderer?.SetSuperMode(true);    // Optional: visual feedback (tint Pac-Man)    
                 };
 
             }
@@ -209,13 +210,26 @@ namespace PacMan
                     if (_pelletsRemaining <= 0)
                     {
                         OnLevelComplete();
-                    }    
+                    }
                 }
 
                 if (_ghostManager?.TryCatchPacMan(_controller.Position) ?? false)
                 {
                     _controller.RaisePacManCaught();
-                }                
+                }
+
+                if (_controller.IsSuperMode)
+                {
+                    if (_controller.TryEndSuperMode())
+                    {
+                        _ghostManager?.SetFrightened(false);
+                        _renderer?.SetSuperMode(false); // Optional: reset visual feedback  
+                    }
+                    if (!_ghostManager?.TryAvoidPacMan(_controller.Position) ?? false)
+                    {
+                        _hud?.AddScore(500); // Pac got a ghost!
+                    }
+                }
             }
         }
 

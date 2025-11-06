@@ -26,12 +26,14 @@ namespace PacMan
         private int _uPosLoc;
         private int _uRotationLoc;
         private int _uScaleLoc;
+        private int _uSuperModeLoc;
         private int _width = 800; // Default windowed
         private int _height = 600; // Default windowed
 
         private bool _isDying = false;
         private double _deathStartTime;
 
+        private bool _isSuper = false;
 
         // Chomp event - subscribers will play sound
         public event Action? OnChomp;
@@ -125,6 +127,7 @@ namespace PacMan
                 uniform vec2 uPos;
                 uniform float uRotation;
                 uniform float uScale;
+                uniform bool uSuperMode;
 
                 mat2 rot(float a) {
                     float c = cos(a);
@@ -164,7 +167,7 @@ namespace PacMan
                     float r = length(rc);
                     float ang = atan(rc.y, rc.x);
 
-                    vec3 bodyColor = vec3(1.0, 0.9, 0.0);
+                    vec3 bodyColor = uSuperMode ? vec3(1.0, 0.5, 0.0) : vec3(1.0, 0.9, 0.0);
 
                     // default: transparent
                     float alpha = 0.0;
@@ -197,6 +200,7 @@ namespace PacMan
             _uPosLoc = _gl.GetUniformLocation(_program, "uPos");
             _uRotationLoc = _gl.GetUniformLocation(_program, "uRotation");
             _uScaleLoc = _gl.GetUniformLocation(_program, "uScale");
+            _uSuperModeLoc = _gl.GetUniformLocation(_program, "uSuperMode");
 
             // set initial viewport/resolution
             var size = _window.Size;
@@ -248,6 +252,9 @@ namespace PacMan
                 }
             }
 
+            if (_uSuperModeLoc != -1)
+                _gl.Uniform1(_uSuperModeLoc, _isSuper ? 1f : 0f);
+
             _gl.BindVertexArray(_vao);
             // Force 2D overlay and blending every frame
             _gl.Disable(GLEnum.DepthTest);
@@ -280,6 +287,7 @@ namespace PacMan
             return !_isDying && (currentTime - _deathStartTime) > 2.0; // seconds
         }
 
+        public void SetSuperMode(bool state) => _isSuper = state;
 
         private uint CreateShader(ShaderType type, string src)
         {
