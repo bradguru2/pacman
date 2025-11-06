@@ -59,6 +59,11 @@ namespace PacMan
 
         private int _level = 1;
 
+        private bool _isSuperMode = false;
+        private double _superStartTime = 0;
+        private const double SuperDuration = 8.0; // seconds of super mode
+
+
         public PacManController(IWindow window, Vector2D<float> startPosition)
         {
             _window = window ?? throw new ArgumentNullException(nameof(window));
@@ -157,6 +162,9 @@ namespace PacMan
 
         public void RaiseSuperPelletEaten()
         {
+            Console.WriteLine("[POWER] Pac-Man entered Super Mode!");
+            _isSuperMode = true;
+            _superStartTime = _window.Time;
             OnSuperPelletEaten?.Invoke();
         }
 
@@ -237,10 +245,23 @@ namespace PacMan
             return false;
         }
 
+        public bool TryEndSuperMode()
+        {
+            double elapsed = _window.Time - _superStartTime;
+            if (elapsed > SuperDuration)
+            {
+                _isSuperMode = false;
+                Console.WriteLine("[POWER] Super Mode ended");
+                return true;
+            }
+            return false;
+        }
+
         public void Pause() => _paused = true;
 
         public void Resume() => _paused = false;
 
+        public bool IsSuperMode => _isSuperMode;
 
         public void Dispose()
         {
