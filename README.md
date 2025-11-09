@@ -77,9 +77,9 @@ classDiagram
     Program --> GhostManager
     Program --> FruitManager
     Maze --> MazeData
-    PacManController --> PacManRenderer
+    Program --> PacManRenderer
     GhostManager --> Ghost
-    GhostManager --> GhostRenderer
+    Program --> GhostRenderer
     FruitManager --> Fruit
     FruitManager --> FruitRenderer
     Program --> PelletRenderer
