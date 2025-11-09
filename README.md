@@ -81,7 +81,7 @@ classDiagram
     GhostManager --> Ghost
     Program --> GhostRenderer
     FruitManager --> Fruit
-    FruitManager --> FruitRenderer
+    Program --> FruitRenderer
     Program --> PelletRenderer
     Program --> HudRenderer
     Program --> GameAudio
