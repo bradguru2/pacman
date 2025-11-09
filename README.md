@@ -7,7 +7,7 @@ Developed Pacman in C# with help from Chat GPT and Github Copilot.
 Pac-Man is a classic arcade game released in 1980 by Namco. It became one of the most iconic and influential video games of all time, known for its simple yet addictive gameplay, memorable characters, and cultural impact. Players control Pac-Man as he navigates a maze, eating pellets and avoiding ghosts.
 
 ## Project Goals and AI Assistance
-My goal was to program a Pac-Man demo using C#, with the assistance of ChatGPT 4.0 and GitHub Copilot. I had never coded Pac-Man or worked with OpenGL before starting this project.
+My goal was to program a Pac-Man demo using C# and Visual Studio Code editor integrated with Github Copilot, with the assistance of ChatGPT 4.0 and GitHub Copilot. I had never coded Pac-Man or worked with OpenGL before starting this project.
 
 The AI was immensely helpful in getting the project started:
 - It recommended using Silk.NET for graphics and OpenGL integration.
