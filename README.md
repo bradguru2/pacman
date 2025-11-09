@@ -17,7 +17,7 @@ The AI was immensely helpful in getting the project started:
 - It provided scaffolding for Pac-Man movement and collision detection.
 - It provided scaffolding for ghost movement and collision detection.
 
-As the project progressed, the AI started to falter on more complex game logic, but its assistance was invaluable for the initial setup and foundational code.  But even when it could not generate the code accurately for the more complex scenarios, it still could provided a good explanation and foundation of what to do.  When things got complex, it started having "hallucinations", but overall it was very helpful and I learned a little about Pacman and OpenGL!
+As the project progressed, the AI started to falter on more complex game logic, but its assistance was invaluable for the initial setup and foundational code.  But even when it could not generate the code accurately for the more complex scenarios, it still provided a good explanation and foundation of what to do.  When things got complex, it started having "hallucinations", but overall it was very helpful and I learned a little about Pacman and OpenGL!
 
 ## Class Diagram
 Below is a class diagram showing the main classes in this Pac-Man project and their responsibilities:
