@@ -93,18 +93,26 @@ namespace PacMan
                     vec2 p = vLocal;
                     vec3 color = uColor; // Starting Color ghost background
 
+                    // Wavy bottom mask
+                    float waveFreq = 4.5; // decreased number of waves
+                    float waveAmp = 0.24; // increased amplitude of the wave
+                    float baseY = -1.0 + waveAmp * (sin(waveFreq * 3.14159 * p.x) * 0.5 + 0.5);
+
                     // if p is outside circle, discard
                     if (length(p) > 1.0 && p.y > -0.3)
                         discard;
+                    // Discard below wavy bottom
+                    if (p.y < baseY)
+                        discard;
 
-                    // Eyes                    
+                    // Eyes
                     vec2 leftEye = p - vec2(-0.35, 0.25);
                     vec2 rightEye = p - vec2(0.35, 0.25);
 
                     if (length(leftEye - vec2(0.05, 0.0)) < 0.1 || length(rightEye - vec2(0.05, 0.0)) < 0.1)
                         color = vec3(0.2, 0.4, 1.0);
                     else if (length(leftEye) < 0.25 || length(rightEye) < 0.25)
-                        color = vec3(1.0);    
+                        color = vec3(1.0);
 
                     FragColor = vec4(color, 1.0);
                 }
@@ -120,12 +128,17 @@ namespace PacMan
         public void Render()
         {
             _gl.UseProgram(_program);
-            
-            if (_ghost.Frightened)
+
+            if (_ghost.Mode == GhostMode.Frightened) 
             {
                 // Blue color when frightened
                 _gl.Uniform3(_uColorLoc, 0.2f, 0.4f, 1.0f);
             }
+            else if (_ghost.Mode == GhostMode.Dead)
+            {
+                // Dim color when dead
+                _gl.Uniform3(_uColorLoc, 0.0f, 0.0f, 0.0f);
+            }   
             else
             {
                 _gl.Uniform3(_uColorLoc, _ghost.Color.X, _ghost.Color.Y, _ghost.Color.Z);

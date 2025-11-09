@@ -99,7 +99,6 @@ namespace PacMan
             {
                 Speed = 0.10f, // UV units per second
                 EntityRadius = _renderer.Scale * baseRadius,
-                Margin = _renderer.Scale * baseRadius + 0.01f
             };
             _controller.SetMaze(maze);     
 
@@ -168,7 +167,7 @@ namespace PacMan
                 startUV.X += maze.TileW / 2f; // nudges him perfectly center
                 _renderer.Scale = (maze.TileW * 0.40f) / baseRadius;
                 _renderer.PositionUV = startUV;
-                _renderer.RotationIndex = 0;
+                _renderer.RotationIndex = 0;                
             };
         }
 
@@ -178,7 +177,7 @@ namespace PacMan
             if (_controller != null)
             {
                 _controller.Update(dt);
-                _ghostManager?.Update(dt);
+                _ghostManager?.Update(dt, _controller.Position, _controller.RotationIndex);
 
                 // Feed controller state into renderer
                 if (_renderer != null && _pelletRenderer != null && _hud != null)

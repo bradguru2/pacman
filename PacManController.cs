@@ -44,11 +44,7 @@ namespace PacMan
 
         // current input state
         private bool _leftDown, _rightDown, _upDown, _downDown;
-
-        // padding to keep Pac-Man fully inside window in UV space.
-        // This should be computed from renderer's scale and radius, but a simple margin is used.
-        public float Margin { get; set; } = 0.05f;
-
+        
         private bool _disposed = false;
 
         private Maze? _maze;
@@ -119,32 +115,23 @@ namespace PacMan
                 var inv = 1f / MathF.Sqrt(dx * dx + dy * dy);
                 dx *= inv;
                 dy *= inv;
-            }
-
-            // Apply movement in normalized UV coords (0..1)
-            float moveX = dx * Speed * (float)dt;
-            float moveY = dy * Speed * (float)dt;
+            }            
 
             // Check for maze collisions if maze is set
             if (_maze != null) {    
+                // Apply movement in normalized UV coords (0..1)
+                float moveX = dx * Speed * (float)dt;
+                float moveY = dy * Speed * (float)dt;
                 var newPos = new Vector2D<float>(Position.X + moveX, Position.Y + moveY);
-                if (_maze.HasCollision(newPos, EntityRadius))
+                newPos = _maze.WrapPositionUV(newPos); // Handle tunnel wrapping
+                if (!_maze.HasCollision(newPos, EntityRadius))
                 {
-                    // Collision detected, cancel movement
-                    moveX = 0f;
-                    moveY = 0f;
-                }
+                    // No collision, proceed with movement
+                    Position = newPos;
+                }                
             }
 
-            // Update position
-            Position = new Vector2D<float>(Position.X + moveX, Position.Y + moveY);
-
-            // Clamp to keep Pac-Man inside window (with margin)
-            Position = new Vector2D<float>(
-                MathF.Max(Margin, MathF.Min(1f - Margin, Position.X)),
-                MathF.Max(Margin, MathF.Min(1f - Margin, Position.Y))
-            );
-
+            
             // Update facing direction: 4-way priority:
             // If horizontal input exists, prefer horizontal. Otherwise vertical.
             if (dx < 0f) RotationIndex = 2;        // Left
@@ -152,7 +139,7 @@ namespace PacMan
             else if (dy > 0f) RotationIndex = 1;   // Up
             else if (dy < 0f) RotationIndex = 3;   // Down
 
-            // When no input, RotationIndex remains last direction (classic Pac-Man)
+            // When no input, RotationIndex remains last direction (classic Pac-Man)            
         }
 
         public void SetMaze(Maze maze)

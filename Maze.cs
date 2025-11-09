@@ -100,12 +100,12 @@ namespace PacMan
         {
             float tX = uv.X * Columns;
             int col = (int)(tX);
-            col = Math.Clamp(col, 0, Columns - 1);
+            //col = Math.Clamp(col, 0, Columns - 1);
 
             float tY = (1.0f - uv.Y) * Rows;   // keep your Y convention
             int row = (int)(tY);
-            row = Math.Clamp(row, 0, Rows - 1);
-            col = Math.Clamp(col, 0, Columns - 1);
+            //row = Math.Clamp(row, 0, Rows - 1);
+            //col = Math.Clamp(col, 0, Columns - 1);
 
             return (row, col);
         }
@@ -142,5 +142,18 @@ namespace PacMan
             int row = (int)((1 - posUV.Y) / TileH); // Flip Y if maze rows count from top
             return !IsWalkable(row, col);
         }
+
+        public Vector2D<float> WrapPositionUV(Vector2D<float> uv, float displacement = 0.0f)
+        {
+            // Horizontal wrap (left/right tunnel)
+            if (uv.X < (0.00f + displacement))
+                uv.X = 1.0f - displacement;
+            else if (uv.X > (1.0f - displacement))
+                uv.X = 0.0f + displacement;
+
+            // Vertical wrap optional (usually not needed)
+            return uv;
+        }
+
     }
 }
