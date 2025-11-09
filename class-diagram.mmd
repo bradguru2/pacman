@@ -1,0 +1,64 @@
+classDiagram
+    class Program {
+        Main entry point
+    }
+    class Maze {
+        Maze data and logic
+    }
+    class MazeData {
+        Static maze layout
+    }
+    class PacManController {
+        Handles Pac-Man movement and input
+    }
+    class PacManRenderer {
+        Renders Pac-Man
+    }
+    class GhostManager {
+        Manages all ghosts
+    }
+    class Ghost {
+        Individual ghost logic and state
+    }
+    class GhostRenderer {
+        Renders ghosts
+    }
+    class PelletRenderer {
+        Renders pellets
+    }
+    class FruitManager {
+        Manages fruit spawning
+    }
+    class Fruit {
+        Fruit logic and state
+    }
+    class FruitRenderer {
+        Renders fruit
+    }
+    class HudRenderer {
+        Renders score and HUD
+    }
+    class GameAudio {
+        Handles game audio
+    }
+    class ShaderUtils {
+        Utility for shader compilation
+    }
+    class Collision {
+        Static collision detection
+    }
+    Program --> Maze
+    Program --> PacManController
+    Program --> GhostManager
+    Program --> FruitManager
+    Maze --> MazeData
+    PacManController --> PacManRenderer
+    GhostManager --> Ghost
+    GhostManager --> GhostRenderer
+    FruitManager --> Fruit
+    FruitManager --> FruitRenderer
+    Program --> PelletRenderer
+    Program --> HudRenderer
+    Program --> GameAudio
+    Program --> ShaderUtils
+    Program --> Collision
