@@ -88,3 +88,55 @@ classDiagram
     Program --> ShaderUtils
     Program --> Collision
 ```
+
+## Class Interaction Diagram
+
+Below is a UML-style interaction (sequence) diagram showing runtime messages and responsibilities between the core classes in this Pac-Man project.
+
+```mermaid
+sequenceDiagram
+    participant Program
+    participant Maze
+    participant MazeData
+    participant Collision
+    participant PacManController as Controller
+    participant PacManRenderer as PacManRenderer
+    participant GhostManager as GhostManager
+    participant Ghost
+    participant GhostRenderer as GhostRenderer
+    participant PelletRenderer as PelletRenderer
+    participant FruitManager as FruitManager
+    participant Fruit
+    participant HudRenderer as Hud
+    participant GameAudio as Audio
+
+    Program->>Maze: new / Initialize()
+    Maze->>MazeData: Read layout
+    Maze->>Collision: (collision helpers used internally)
+    Program->>PacManRenderer: new / Initialize()
+    Program->>PelletRenderer: new / Initialize(maze)
+    PelletRenderer->>Maze: Query pellets state
+    Program->>GhostManager: new GhostManager(maze)
+    GhostManager->>Ghost: Create ghosts (starting state)
+    GhostManager->>GhostRenderer: Provide ghosts for rendering
+    Program->>FruitManager: new FruitManager()
+    FruitManager->>Fruit: Spawn / update fruit
+    Program->>Controller: new PacManController(maze, renderer)
+    Controller->>Maze: IsWalkable / HasCollision
+    Maze->>Collision: CircleIntersectsRect (collision query)
+    Controller->>PacManRenderer: Update position & direction
+    Controller->>GhostManager: Check collisions with ghosts
+    GhostManager->>Ghost: Update AI / movement
+    Ghost->>Maze: Query IsWalkable / HasCollision
+    Ghost->>GhostRenderer: Provide position/state for render
+    Controller->>Maze: Consume pellet / super-pellet
+    Maze-->>PelletRenderer: Pellet removed (state change)
+    Controller->>FruitManager: Check/try-eat fruit
+    FruitManager->>Program: Notify fruit eaten
+    Program->>Hud: AddScore / Update lives
+    Program->>Audio: Play sound events (eat, death, level complete)
+    Ghost->>Program: Notify death / mode changes
+    Program->>Hud: Trigger life/death UI updates
+    Program->>PacManRenderer: Trigger death animation / respawn
+```
+
