@@ -1,0 +1,25 @@
+name: .NET CI Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4 # 1. Check out the repository code
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x' # 2. Specify the desired .NET SDK version
+        
+    - name: Restore dependencies
+      run: dotnet restore # 3. Restore NuGet packages
+
+    - name: Build project
+      run: dotnet build --configuration Release --no-restore # 4. Build the application
