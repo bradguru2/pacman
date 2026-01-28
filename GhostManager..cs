@@ -277,11 +277,7 @@ namespace PacMan
                 if (distSq < hitRadius * hitRadius)
                 {
                     if (ghost.Mode != GhostMode.Frightened)
-                    {
-                        // Move to Ghost box
-                        ghost.Dir = new Vector2D<float>(0, 0.9f);
-                        ghost.PosUV = ghost.StartingPosUV;
-                        ghost.InBox = true;
+                    {                        
                         return true;
                     }
                 }
