@@ -287,6 +287,7 @@ namespace PacMan
 
         public bool TryAvoidPacMan(Vector2D<float> pacManPosition)
         {
+            var i = 0;
             foreach (var ghost in _ghosts)
             {
                 float dx = pacManPosition.X - ghost.PosUV.X;
@@ -298,7 +299,12 @@ namespace PacMan
                 {
                     if (ghost.Mode == GhostMode.Frightened)
                     {
-                        ghost.Dir = new Vector2D<float>(0, 0.9f);
+                        if (i++ % 2 == 0) {
+                            ghost.Dir = new Vector2D<float>(1.0f, 0.0f);
+                        }
+                        else {
+                            ghost.Dir = new Vector2D<float>(-1.0f, 0.0f);
+                        }
                         ghost.PosUV = ghost.StartingPosUV;
                         ghost.InBox = true;
                         ghost.Mode = GhostMode.Dead;
@@ -313,6 +319,23 @@ namespace PacMan
 
         public void SetLevel(float level)
         {
+            var i = 0;
+            foreach (var ghost in _ghosts)
+            {
+                if (i++ % 2 == 0) {
+                    ghost.Dir = new Vector2D<float>(1.0f, 0.0f);
+                }
+                else {
+                    ghost.Dir = new Vector2D<float>(-1.0f, 0.0f);
+                }
+                ghost.PosUV = ghost.StartingPosUV;
+                ghost.InBox = true;
+                ghost.Mode = GhostMode.Scatter;
+                ghost.Teleport = false;
+                _teleporting = false;
+                _isChasePhase = false;
+                _modeTimer = 0;
+            }
             _level += level * 0.125f; // scale level effect
         }
 
