@@ -57,6 +57,8 @@ namespace PacMan
 
         private bool _isSuperMode = false;
         private double _superStartTime = 0;
+        private double _invinciibilityStartTime = 0;
+        private Boolean _isInvincible = false;
         private const double SuperDuration = 8.0; // seconds of super mode
 
 
@@ -101,6 +103,16 @@ namespace PacMan
         public void Update(double dt)
         {
             if (_disposed || _paused) return;
+
+            if (_isInvincible)
+            {
+                _invinciibilityStartTime += dt;
+                if (_invinciibilityStartTime > 4.0)
+                {
+                    _isInvincible = false;
+                    _invinciibilityStartTime = 0;
+                }
+            }
 
             // build a direction vector from the current key state
             float dx = 0f, dy = 0f;
@@ -157,6 +169,8 @@ namespace PacMan
 
         public void RaisePacManCaught()
         {
+            if (_isInvincible) return;             
+            _isInvincible = true;            
             OnPacManCaught?.Invoke();
         }
 
@@ -249,6 +263,7 @@ namespace PacMan
         public void Resume() => _paused = false;
 
         public bool IsSuperMode => _isSuperMode;
+        public bool IsInvincible => _isInvincible;
 
         public void Dispose()
         {

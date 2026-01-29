@@ -25,6 +25,7 @@ namespace PacMan
         // Game progression
         private static float _level = 1.0f;
         private static int _pelletsRemaining = 0;
+        private static double _blinkTimer = 0.0;
 
 
 
@@ -248,7 +249,27 @@ namespace PacMan
 
            
             // ✅ Then Pac-Man
-            if (!_isGameOver) _renderer?.Render((float)_window!.Time);
+            if (!_isGameOver) {
+                // Blink pacman when invincible after being respawned
+                if (_controller!.IsInvincible && !_isPacmanDead)
+                {
+                    _blinkTimer += dt;
+                    if (_blinkTimer >= 0.2)
+                    {
+                        _blinkTimer = 0.0;
+                    }
+
+                    // Render only half the time
+                    if (_blinkTimer < 0.1)
+                    {
+                        _renderer?.Render((float)_window!.Time);
+                    }
+                }
+                else {
+                    _blinkTimer = 0.0;
+                    _renderer?.Render((float)_window!.Time);
+                }
+            }
 
             // ✅ Then ghosts
             foreach (var ghost in _ghosts!)
