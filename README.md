@@ -3,6 +3,10 @@ Developed Pacman in C# with help from Chat GPT and Github Copilot.
 
 ![Screenshot of demo](image.png)
 
+## Prequisites
+- dotnet 8.0
+- need a sixlabors.lic file in project root. Please see: [License Request]([https://example.com](https://licensing.sixlabors.com/))
+  
 ## History of Pac-Man
 Pac-Man is a classic arcade game released in 1980 by Namco. It became one of the most iconic and influential video games of all time, known for its simple yet addictive gameplay, memorable characters, and cultural impact. Players control Pac-Man as he navigates a maze, eating pellets and avoiding ghosts.
 
