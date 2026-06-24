@@ -12,6 +12,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6 # 1. Check out the repository code
+
+    - name: Restore SixLabors license
+      shell: bash
+      env:
+        LICENSE_B64: ${{ secrets.SIXLABORS_LICENSE_B64 }}
+      run: |
+        if [ -z "$LICENSE_B64" ]; then
+          echo "::error::SIXLABORS_LICENSE_B64 repository secret is unavailable"
+          exit 1
+        fi
+        printf '%s' "$LICENSE_B64" | base64 --decode > sixlabors.lic
+        chmod 600 sixlabors.lic
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
