@@ -138,8 +138,15 @@ namespace PacMan
             using var img = new Image<Rgba32>(_width, 64);
             img.Mutate(ctx =>
             {
-                ctx.Fill(Color.Transparent);
-                ctx.DrawText(text, _font, Color.Yellow, new PointF(10, 10));
+                ctx.Paint(canvas =>
+                {
+                    canvas.Fill(Brushes.Solid(Color.Transparent));
+                    canvas.DrawText(
+                        new RichTextOptions(_font) { Origin = new PointF(10, 10) },
+                        text,
+                        Brushes.Solid(Color.Yellow),
+                        null);
+                });
                 ctx.Flip(FlipMode.Vertical);
             });            
 
