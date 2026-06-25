@@ -58,7 +58,8 @@ jobs:
             -p:DebugType=None \
             -p:DebugSymbols=false \
             --output "dist/$package_name"
-          cp README.md LICENSE "dist/$package_name/"
+          cp README.html LICENSE "dist/$package_name/"
+          sed -i "s/{{VERSION}}/$version/g" "dist/$package_name/README.html"
 
       - name: Create archive
         shell: bash
