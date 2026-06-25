@@ -18,6 +18,20 @@
       background: #f2f2f2;
       border-radius: 4px;
     }
+    pre {
+      overflow-x: auto;
+      padding: 0.85rem;
+      background: #f2f2f2;
+      border-radius: 6px;
+    }
+    pre code {
+      padding: 0;
+    }
+    .note {
+      padding: 0.75rem 1rem;
+      background: #eef5ff;
+      border-left: 4px solid #174ea6;
+    }
     .version { color: #555; }
   </style>
 </head>
@@ -27,23 +41,112 @@
     <p class="version">Version {{VERSION}}</p>
 
     <h2>Run the game</h2>
+    <p>Fully extract the archive before starting the game. Do not run the
+      executable from inside the ZIP or TAR file.</p>
     <p><strong>Windows:</strong> Double-click <code>PacMan.exe</code>.</p>
-    <p><strong>Linux:</strong> Open a terminal in this folder and run
-      <code>./PacMan</code>.</p>
+    <p><strong>Linux:</strong> Open a terminal in the extracted folder and run:</p>
+    <pre><code>chmod +x PacMan
+./PacMan</code></pre>
 
     <h2>Controls</h2>
     <p>Hold the arrow keys to move Pac-Man through the maze.</p>
 
-    <h2>Package contents</h2>
+    <h2>.NET runtime</h2>
+    <p class="note">The Windows and Linux releases are self-contained .NET 8
+      applications. You do not need to install the .NET 8 runtime. A
+      self-contained application still depends on native operating-system,
+      graphics, windowing, and audio libraries.</p>
+
+    <h2>Required package contents</h2>
     <p>Keep the <code>Assets</code> folder beside the PacMan executable. It
       contains audio required by the game.</p>
+    <p>On Windows, the preferred setup is to keep the required native DLLs
+      beside <code>PacMan.exe</code>:</p>
+    <ul>
+      <li><code>glfw3.dll</code> provides the game window, OpenGL context, and
+        keyboard input.</li>
+      <li><code>OpenAL32.dll</code> provides audio playback.</li>
+    </ul>
+
+    <h2>Windows 10 or 11 (64-bit)</h2>
+    <ol>
+      <li>Extract the entire Windows x64 release archive.</li>
+      <li>Confirm that <code>glfw3.dll</code> is in the same folder as
+        <code>PacMan.exe</code>. If it is missing, download the official
+        <a href="https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.bin.WIN64.zip">GLFW 3.4 Windows 64-bit binaries</a>.
+        Extract <code>lib-vc2022/glfw3.dll</code> and place it beside
+        <code>PacMan.exe</code>.</li>
+      <li>Confirm that <code>OpenAL32.dll</code> is beside
+        <code>PacMan.exe</code>. If it is missing, download the official
+        <a href="https://github.com/kcat/openal-soft/releases/download/1.25.2/openal-soft-1.25.2-bin.zip">OpenAL Soft 1.25.2 binary package</a>.
+        Extract <code>bin/Win64/soft_oal.dll</code>, rename it to
+        <code>OpenAL32.dll</code>, and place it beside
+        <code>PacMan.exe</code>.</li>
+      <li>Run <code>PacMan.exe</code>.</li>
+    </ol>
+    <p>If Windows reports that <code>VCRUNTIME140.dll</code>,
+      <code>MSVCP140.dll</code>, or another Microsoft C/C++ runtime DLL is
+      missing, install the official
+      <a href="https://aka.ms/vc14/vc_redist.x64.exe">Microsoft Visual C++ x64 Redistributable</a>.
+      This is a system-wide installation and normally requires administrator
+      permission.</p>
+    <p>The game also requires a working OpenGL graphics driver. Install the
+      current driver supplied by Intel, AMD, NVIDIA, or the computer
+      manufacturer if the window cannot create an OpenGL context.</p>
+
+    <h2>Linux x64</h2>
+    <p>The Linux release targets 64-bit, glibc-based distributions. It needs
+      OpenAL, OpenGL, and either X11 or Wayland client libraries in addition to
+      the native libraries required by .NET 8.</p>
+
+    <h3>Ubuntu 24.04</h3>
+    <pre><code>sudo apt update
+sudo apt install ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 \
+  libicu74 libssl3 libstdc++6 tzdata zlib1g \
+  libopenal1 libglfw3 libgl1 \
+  libx11-6 libxrandr2 libxinerama1 libxcursor1 libxi6 \
+  libwayland-client0 libxkbcommon0</code></pre>
+    <p>For Ubuntu 22.04, replace <code>libicu74</code> with
+      <code>libicu70</code>. For Debian 12, use <code>libicu72</code>.
+      Package names can differ on other releases.</p>
+
+    <h3>Fedora and related distributions</h3>
+    <pre><code>sudo dnf install ca-certificates glibc libgcc krb5-libs libicu \
+  openssl-libs libstdc++ tzdata zlib openal-soft glfw mesa-libGL \
+  libX11 libXrandr libXinerama libXcursor libXi \
+  wayland-libs libxkbcommon</code></pre>
+    <p>Use the graphics driver recommended by your distribution or GPU vendor.
+      For additional distribution-specific .NET native requirements, see
+      <a href="https://learn.microsoft.com/dotnet/core/install/linux">Install .NET on Linux</a>.
+      You do not need to install the .NET runtime itself.</p>
 
     <h2>Troubleshooting</h2>
     <ul>
       <li>Make sure the archive is fully extracted before starting the game.</li>
-      <li>Linux requires working OpenGL and audio drivers.</li>
-      <li>If Linux reports a permissions error, run
+      <li><strong>Windows: GLFW cannot be loaded:</strong> put the 64-bit
+        <code>glfw3.dll</code> beside <code>PacMan.exe</code>.</li>
+      <li><strong>Windows: OpenAL cannot be loaded:</strong> put the 64-bit
+        <code>OpenAL32.dll</code> beside <code>PacMan.exe</code>.</li>
+      <li><strong>Linux: <code>libglfw.so.3</code> cannot be found:</strong>
+        install <code>libglfw3</code> on Debian/Ubuntu or <code>glfw</code> on
+        Fedora.</li>
+      <li><strong>Linux: OpenAL cannot be found:</strong> install
+        <code>libopenal1</code> on Debian/Ubuntu or <code>openal-soft</code> on
+        Fedora.</li>
+      <li><strong>Linux: no display or OpenGL context:</strong> verify that an
+        X11 or Wayland session is available and that the correct GPU driver is
+        installed. Remote/headless shells normally cannot open the game
+        window without display forwarding.</li>
+      <li><strong>Linux: permissions error:</strong> run
         <code>chmod +x PacMan</code>.</li>
+    </ul>
+
+    <h2>Dependency references</h2>
+    <ul>
+      <li><a href="https://learn.microsoft.com/dotnet/core/deploying/">Microsoft .NET deployment documentation</a></li>
+      <li><a href="https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist">Microsoft Visual C++ Redistributable documentation</a></li>
+      <li><a href="https://www.glfw.org/download.html">Official GLFW downloads</a></li>
+      <li><a href="https://github.com/kcat/openal-soft/releases">Official OpenAL Soft releases</a></li>
     </ul>
 
     <p>
