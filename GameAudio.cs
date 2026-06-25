@@ -31,7 +31,10 @@ namespace PacMan
         /// </summary>
         public GameAudio(string wavPath)
         {
-            _wavPath = wavPath ?? throw new ArgumentNullException(nameof(wavPath));
+            ArgumentNullException.ThrowIfNull(wavPath);
+            _wavPath = Path.IsPathRooted(wavPath)
+                ? wavPath
+                : Path.Combine(AppContext.BaseDirectory, wavPath);
             _alc = ALContext.GetApi();
             _al = AL.GetApi();
         }
@@ -125,7 +128,7 @@ namespace PacMan
             int numChannels = 0;
             int sampleRate = 0;
             int bitsPerSample = 0;
-            byte[] dataBytes = null;
+            byte[]? dataBytes = null;
 
             while (br.BaseStream.Position < br.BaseStream.Length)
             {

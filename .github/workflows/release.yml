@@ -1,0 +1,107 @@
+name: Build GitHub Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Package ${{ matrix.runtime }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runtime: win-x64
+            archive: zip
+          - runtime: linux-x64
+            archive: tar.gz
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Restore SixLabors license
+        shell: bash
+        env:
+          LICENSE_B64: ${{ secrets.SIXLABORS_LICENSE_B64 }}
+        run: |
+          if [ -z "$LICENSE_B64" ]; then
+            echo "::error::SIXLABORS_LICENSE_B64 repository secret is unavailable"
+            exit 1
+          fi
+          printf '%s' "$LICENSE_B64" | base64 --decode > sixlabors.lic
+          chmod 600 sixlabors.lic
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          package_name="PacMan-${version}-${{ matrix.runtime }}"
+          echo "PACKAGE_NAME=$package_name" >> "$GITHUB_ENV"
+          dotnet publish PacMan.csproj \
+            --configuration Release \
+            --runtime "${{ matrix.runtime }}" \
+            --self-contained true \
+            -p:Version="$version" \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:DebugType=None \
+            -p:DebugSymbols=false \
+            --output "dist/$package_name"
+          cp README.md LICENSE "dist/$package_name/"
+
+      - name: Create archive
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            zip -r "${PACKAGE_NAME}.zip" "$PACKAGE_NAME"
+            archive="${PACKAGE_NAME}.zip"
+          else
+            chmod +x "${PACKAGE_NAME}/PacMan"
+            tar -czf "${PACKAGE_NAME}.tar.gz" "$PACKAGE_NAME"
+            archive="${PACKAGE_NAME}.tar.gz"
+          fi
+          sha256sum "$archive" > "${archive}.sha256"
+
+      - name: Upload packaged build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_NAME }}
+          path: |
+            dist/${{ env.PACKAGE_NAME }}.${{ matrix.archive }}
+            dist/${{ env.PACKAGE_NAME }}.${{ matrix.archive }}.sha256
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download packaged builds
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --generate-notes \
+            --title "PacMan $GITHUB_REF_NAME" \
+            release-assets/*

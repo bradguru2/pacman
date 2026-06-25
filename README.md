@@ -6,7 +6,31 @@ Developed Pacman in C# with help from Chat GPT and Github Copilot.
 ## Prequisites
 - dotnet 8.0
 - need a sixlabors.lic file in project root. Please see: [License Request](https://licensing.sixlabors.com/)
-  
+
+## Download
+
+Prebuilt Windows and Linux packages are published on the
+[GitHub Releases page](https://github.com/bradguru2/pacman/releases).
+
+- Windows: download the `win-x64.zip` file, extract it, and run `PacMan.exe`.
+- Linux: download the `linux-x64.tar.gz` file, extract it, and run `./PacMan`.
+
+Each archive includes a matching `.sha256` checksum file. These packages are
+self-contained, so users do not need to install the .NET runtime.
+
+## Publishing a Release
+
+Push the commits first, then create and push a semantic-version tag:
+
+```bash
+git push origin main
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Pushing a `v*` tag runs the GitHub release workflow and creates the Windows and
+Linux packages. The `SIXLABORS_LICENSE_B64` repository secret must be configured.
+
 ## History of Pac-Man
 Pac-Man is a classic arcade game released in 1980 by Namco. It became one of the most iconic and influential video games of all time, known for its simple yet addictive gameplay, memorable characters, and cultural impact. Players control Pac-Man as he navigates a maze, eating pellets and avoiding ghosts.
 
@@ -143,4 +167,3 @@ sequenceDiagram
     Program->>Hud: Trigger life/death UI updates
     Program->>PacManRenderer: Trigger death animation / respawn
 ```
-
