@@ -6,7 +6,7 @@ Developed PacMan in C# with help from ChatGPT and GitHub Copilot.
 
 ## Developer prerequisites
 
-- Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+- Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 - Place a valid `sixlabors.lic` file in the project root. Request a license from
   [Six Labors](https://licensing.sixlabors.com/). The file is intentionally
   ignored by Git and must not be committed.
@@ -33,7 +33,7 @@ The C# code uses Silk.NET bindings:
   audio mixing in software and normally sends the final stream through the
   operating system's audio backend.
 
-The release workflow publishes self-contained .NET 8 executables. This bundles
+The release workflow publishes self-contained .NET 10 executables. This bundles
 the .NET runtime, but it does not eliminate native operating-system, graphics,
 windowing, and audio dependencies.
 
